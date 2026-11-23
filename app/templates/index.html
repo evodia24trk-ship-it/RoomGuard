@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoomGuard — Room Occupancy Classification</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">🛡️ RoomGuard</div>
+  <nav>
+    <a href="#predict">Predict</a><a href="#dashboard">Dashboard</a>
+    <a href="#batch">Batch Upload</a><a href="#history">History</a><a href="#model">Model</a>
+  </nav>
+</header>
+<main>
+  <section class="hero">
+    <h1>Room Occupancy Classification</h1>
+    <p>Decision Tree based on smartphone ambience sensors — Light (Lux) &amp; Sound (dB).
+       Group 12: Evodia &amp; Hasbi · Workshop Machine Learning for IoT · UAS</p>
+    <p class="sub">Dataset: 2,000 rows — 1,500 public (UCI Room Occupancy Estimation, ID 864) +
+       500 private (phyphox, 30-second interval). Split 70% train / 30% test.</p>
+  </section>
+
+  <section id="predict" class="card">
+    <h2>Single Prediction</h2>
+    <form id="predict-form">
+      <label>Light intensity (Lux)
+        <input type="number" id="light" step="0.01" min="0" max="2000" placeholder="e.g. 120" required>
+      </label>
+      <label>Sound level (dB)
+        <input type="number" id="sound" step="0.01" min="20" max="120" placeholder="e.g. 55" required>
+      </label>
+      <button type="submit">Classify Room</button>
+    </form>
+    <div class="presets">
+      <button data-light="5" data-sound="36">Preset: Empty, dark &amp; quiet</button>
+      <button data-light="120" data-sound="56">Preset: Occupied, bright &amp; noisy</button>
+      <button data-light="90" data-sound="37">Preset: Hard case — bright but quiet</button>
+      <button data-light="8" data-sound="52">Preset: Hard case — dark but noisy</button>
+    </div>
+    <p id="form-error" class="error" hidden></p>
+    <div id="result" hidden>
+      <h3 id="result-label"></h3>
+      <p id="result-prob"></p>
+      <p id="result-desc"></p>
+      <p><strong>Recommendation:</strong> <span id="result-rec"></span></p>
+      <details><summary>Why this prediction? (decision path)</summary>
+        <ol id="result-path"></ol></details>
+    </div>
+  </section>
+
+  <section id="dashboard" class="card">
+    <h2>Dashboard — Model Performance (Test Set, n = 600)</h2>
+    <div class="metrics">
+      <div><strong>{{ "%.2f"|format(metrics.test_accuracy*100) }}%</strong><span>Accuracy</span></div>
+      <div><strong>{{ "%.2f"|format(metrics.test_f1_macro*100) }}%</strong><span>Macro F1-score</span></div>
+      <div><strong>{{ "%.2f"|format(metrics.test_precision_macro*100) }}%</strong><span>Macro Precision</span></div>
+      <div><strong>{{ "%.2f"|format(metrics.test_recall_macro*100) }}%</strong><span>Macro Recall</span></div>
+      <div><strong>{{ "%.2f"|format(metrics.cv_macro_f1*100) }}%</strong><span>CV Macro F1 (5-fold)</span></div>
+    </div>
+    <p>Confusion matrix — test set: TN {{ metrics.confusion_matrix[0][0] }}, FP {{ metrics.confusion_matrix[0][1] }},
+       FN {{ metrics.confusion_matrix[1][0] }}, TP {{ metrics.confusion_matrix[1][1] }}.
+       Best model: Decision Tree ({{ metrics.best_params.criterion }}, max_depth={{ metrics.best_params.max_depth }},
+       min_samples_leaf={{ metrics.best_params.min_samples_leaf }}).
+       Feature importance — Sound {{ "%.1f"|format(metrics.feature_importances.Sound_dB*100) }}%,
+       Light {{ "%.1f"|format(metrics.feature_importances.Light_Lux*100) }}%.</p>
+    <div class="figures">
+      <figure><img src="/model/confusion_matrix.png" alt="Confusion matrix"><figcaption>Confusion Matrix</figcaption></figure>
+      <figure><img src="/model/feature_importance.png" alt="Feature importance"><figcaption>Feature Importance</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="batch" class="card">
+    <h2>Batch Prediction (CSV Upload)</h2>
+    <p>Upload a CSV with <code>Light_Lux</code> and <code>Sound_dB</code> columns
+       (optional <code>Occupied</code> column: 1 = Occupied, 0 = Empty — if present, batch accuracy is shown).
+       Max 5,000 rows, 5 MB. <a href="#" id="sample-csv">Download sample CSV</a></p>
+    <form id="batch-form"><input type="file" id="csv-file" accept=".csv" required>
+      <button type="submit">Upload &amp; Classify</button></form>
+    <p id="batch-error" class="error" hidden></p>
+    <div id="batch-result" hidden><p id="batch-summary"></p>
+      <table><thead><tr><th>Light (Lux)</th><th>Sound (dB)</th><th>Prediction</th><th>Probability</th><th>True Label</th></tr></thead>
+      <tbody id="batch-body"></tbody></table></div>
+  </section>
+
+  <section id="history" class="card">
+    <h2>Prediction History (CRUD)</h2>
+    <p>Every prediction is saved. You can correct its true label, add a note, or delete it.</p>
+    <button id="refresh-history">Refresh History</button>
+    <table><thead><tr><th>ID</th><th>Light</th><th>Sound</th><th>Prediction</th><th>Prob.</th><th>True Label</th><th>Note</th><th>Actions</th></tr></thead>
+    <tbody id="history-body"></tbody></table>
+  </section>
+
+  <section id="model" class="card">
+    <h2>Model &amp; Dataset</h2>
+    <ul>
+      <li>Model: Decision Tree Classifier (scikit-learn), class_weight = balanced.</li>
+      <li>Features: Light_Lux, Sound_dB only — exactly the two ambience sensors in the assignment.</li>
+      <li>Target: Occupied (1) / Empty (0). Labelling follows the fixed standard in
+          <code>dataset/LABELING_STANDARD.md</code> — headcount log, never the sensor value.</li>
+      <li>Public data: <a href="https://archive.ics.uci.edu/dataset/864/room+occupancy+estimation">UCI Room Occupancy Estimation (864)</a>, accessed 23 Nov 2026, CC BY 4.0.</li>
+      <li>Private data: phyphox Light + Sound Meter, 30-second interval, manual labelling.</li>
+    </ul>
+    <figure><img src="/model/decision_tree.png" alt="Decision tree diagram"><figcaption>Trained Decision Tree</figcaption></figure>
+  </section>
+</main>
+<footer>RoomGuard · Group 12 (Evodia &amp; Hasbi) · UAS Workshop Machine Learning for IoT</footer>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

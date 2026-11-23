@@ -1,0 +1,5 @@
+timestamp,session_id,observer_a,observer_b,headcount,occupied,notes
+2026-11-10 09:00:00,S01,Evodia,Hasbi,0,0,room empty - door closed
+2026-11-10 09:00:30,S01,Evodia,Hasbi,0,0,room empty - door closed
+2026-11-10 10:00:00,S02,Evodia,Hasbi,2,1,2 people studying - headcount at interval start
+2026-11-10 10:00:30,S02,Evodia,Hasbi,2,1,2 people studying

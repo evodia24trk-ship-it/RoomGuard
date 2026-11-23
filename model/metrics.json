@@ -1,0 +1,65 @@
+{
+  "n_total": 2000,
+  "n_train": 1400,
+  "n_test": 600,
+  "best_params": {
+    "criterion": "gini",
+    "max_depth": "7",
+    "min_samples_leaf": "10"
+  },
+  "cv_macro_f1": 0.9524,
+  "test_accuracy": 0.9483,
+  "test_precision_macro": 0.9259,
+  "test_recall_macro": 0.9469,
+  "test_f1_macro": 0.9356,
+  "per_class": {
+    "Empty": {
+      "precision": 0.9789227166276346,
+      "recall": 0.95,
+      "f1-score": 0.9642445213379469,
+      "support": 440.0
+    },
+    "Occupied": {
+      "precision": 0.8728323699421965,
+      "recall": 0.94375,
+      "f1-score": 0.9069069069069069,
+      "support": 160.0
+    },
+    "accuracy": 0.9483333333333334,
+    "macro avg": {
+      "precision": 0.9258775432849156,
+      "recall": 0.9468749999999999,
+      "f1-score": 0.9355757141224269,
+      "support": 600.0
+    },
+    "weighted avg": {
+      "precision": 0.9506319575115177,
+      "recall": 0.9483333333333334,
+      "f1-score": 0.948954490823003,
+      "support": 600.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      418,
+      22
+    ],
+    [
+      9,
+      151
+    ]
+  ],
+  "feature_importances": {
+    "Light_Lux": 0.1376,
+    "Sound_dB": 0.8624
+  },
+  "tree_text": "|--- Sound_dB <= 38.82\n|   |--- Light_Lux <= 51.62\n|   |   |--- Sound_dB <= 38.54\n|   |   |   |--- Light_Lux <= 43.62\n|   |   |   |   |--- Sound_dB <= 35.68\n|   |   |   |   |   |--- Sound_dB <= 35.41\n|   |   |   |   |   |   |--- class: Empty\n|   |   |   |   |   |--- Sound_dB >  35.41\n|   |   |   |   |   |   |--- class: Empty\n|   |   |   |   |--- Sound_dB >  35.68\n|   |   |   |   |   |--- Light_Lux <= 0.12\n|   |   |   |   |   |   |--- class: Empty\n|   |   |   |   |   |--- Light_Lux >  0.12\n|   |   |   |   |   |   |--- class: Empty\n|   |   |   |--- Light_Lux >  43.62\n|   |   |   |   |--- Light_Lux <= 45.82\n|   |   |   |   |   |--- class: Empty\n|   |   |   |   |--- Light_Lux >  45.82\n|   |   |   |   |   |--- class: Empty\n|   |   |--- Sound_dB >  38.54\n|   |   |   |--- Light_Lux <= 6.12\n|   |   |   |   |--- class: Empty\n|   |   |   |--- Light_Lux >  6.12\n|   |   |   |   |--- class: Empty\n|   |--- Light_Lux >  51.62\n|   |   |--- class: Occupied\n|--- Sound_dB >  38.82\n|   |--- Light_Lux <= 5.66\n|   |   |--- class: Empty\n|   |--- Light_Lux >  5.66\n|   |   |--- Sound_dB <= 43.30\n|   |   |   |--- Light_Lux <= 61.87\n|   |   |   |   |--- Light_Lux <= 17.23\n|   |   |   |   |   |--- class: Occupied\n|   |   |   |   |--- Light_Lux >  17.23\n|   |   |   |   |   |--- Sound_dB <= 40.17\n|   |   |   |   |   |   |--- Light_Lux <= 29.68\n|   |   |   |   |   |   |   |--- class: Occupied\n|   |   |   |   |   |   |--- Light_Lux >  29.68\n|   |   |   |   |   |   |   |--- class: Occupied\n|   |   |   |   |   |--- Sound_dB >  40.17\n|   |   |   |   |   |   |--- Sound_dB <= 41.99\n|   |   |   |   |   |   |   |--- class: Empty\n|   |   |   |   |   |   |--- Sound_dB >  41.99\n|   |   |   |   |   |   |   |--- class: Occupied\n|   |   |   |--- Light_Lux >  61.87\n|   |   |   |   |--- class: Occupied\n|   |   |--- Sound_dB >  43.30\n|   |   |   |--- Light_Lux <= 59.92\n|   |   |   |   |--- Light_Lux <= 32.84\n|   |   |   |   |   |--- class: Occupied\n|   |   |   |   |--- Light_Lux >  32.84\n|   |   |   |   |   |--- Sound_dB <= 45.95\n|   |   |   |   |   |   |--- class: Occupied\n|   |   |   |   |   |--- Sound_dB >  45.95\n|   |   |   |   |   |   |--- Sound_dB <= 49.09\n|   |   |   |   |   |   |   |--- class: Occupied\n|   |   |   |   |   |   |--- Sound_dB >  49.09\n|   |   |   |   |   |   |   |--- class: Occupied\n|   |   |   |--- Light_Lux >  59.92\n|   |   |   |   |--- class: Occupied\n",
+  "train_class": {
+    "Empty": 1028,
+    "Occupied": 372
+  },
+  "test_class": {
+    "Empty": 440,
+    "Occupied": 160
+  }
+}
