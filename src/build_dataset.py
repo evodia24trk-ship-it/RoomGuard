@@ -59,17 +59,30 @@ def sound_v_to_db(v):
     return 20 * np.log10(v / 0.05) + 35.0
 
 def build_public(n=1500):
-    uci = pd.read_csv("Occupancy_Estimation.csv")
-    pub = uci.sample(n=n, random_state=42).copy()  # stratified? sample then check; use stratify below
-    # redo stratified to preserve 81.2% / 18.8% split
+    # TRACEABILITY (revisi 23 Nov 2026): every sampled row keeps its original
+    # row number (uci_row_id, 0-based line in uci864_original_10129.csv, the
+    # exact file downloaded from https://archive.ics.uci.edu/dataset/864/
+    # room+occupancy+estimation) and its original Room_Occupancy_Count, so
+    # anyone can verify each row against the UCI file instead of trusting it.
+    uci = pd.read_csv("dataset/uci864_original_10129.csv")
+    uci["uci_row_id"] = uci.index
     uci["Occupied"] = (uci["Room_Occupancy_Count"] > 0).astype(int)
     pub = (uci.groupby("Occupied", group_keys=False)
               .apply(lambda g: g.sample(n=int(round(n * len(g) / len(uci))), random_state=42)))
     pub = pub.sample(frac=1, random_state=42).reset_index(drop=True)
+    # Full traceable copy: all original columns + derived columns.
+    full = pub.copy()
+    full["Light_Lux"] = full[["S1_Light", "S2_Light", "S3_Light", "S4_Light"]].mean(axis=1).round(2)
+    full["Sound_dB"] = sound_v_to_db(full[["S1_Sound", "S2_Sound", "S3_Sound", "S4_Sound"]].mean(axis=1)).round(2)
+    full["Label"] = full["Occupied"].map({0: "Empty", 1: "Occupied"})
+    full["Source"] = "Public_UCI_864"
+    full.to_csv("dataset/public_uci_sample_1500_full.csv", index=False)
     out = pd.DataFrame({
+        "uci_row_id": pub["uci_row_id"].astype(int),
         "timestamp": pd.to_datetime(pub["Date"] + " " + pub["Time"]),
         "Light_Lux": pub[["S1_Light", "S2_Light", "S3_Light", "S4_Light"]].mean(axis=1).round(2),
         "Sound_dB": sound_v_to_db(pub[["S1_Sound", "S2_Sound", "S3_Sound", "S4_Sound"]].mean(axis=1)).round(2),
+        "Room_Occupancy_Count": pub["Room_Occupancy_Count"].astype(int),
         "Occupied": pub["Occupied"].astype(int),
         "Source": "Public_UCI_864",
     })
@@ -141,6 +154,14 @@ def main():
     combined = pd.concat([pub, priv], ignore_index=True).sample(frac=1, random_state=42).reset_index(drop=True)
     pub.to_csv(f"{BASE}/public_uci_sample_1500.csv", index=False)
     priv.to_csv(f"{BASE}/private_phyphox_500.csv", index=False)
+    # Verification: every public row must match the original UCI file exactly.
+    _orig = pd.read_csv(f"{BASE}/uci864_original_10129.csv")
+    _chk = pub.dropna(subset=["uci_row_id"])
+    _m = _chk.merge(_orig, left_on="uci_row_id", right_index=True, suffixes=("", "_orig"))
+    assert ((_m["Light_Lux"] - _m[["S1_Light", "S2_Light", "S3_Light", "S4_Light"]].mean(axis=1).round(2)).abs() < 0.011).all()
+    assert (_m["Room_Occupancy_Count"] == _m["Room_Occupancy_Count_orig"]).all()
+    assert (_m["Occupied"] == (_m["Room_Occupancy_Count"] > 0).astype(int)).all()
+    print(f"traceability check OK: {len(_m)} public rows match uci864_original_10129.csv by uci_row_id")
     combined.to_csv(f"{BASE}/combined_dataset_2000.csv", index=False)
     print(f"public : {len(pub)}  Empty={(pub.Occupied==0).sum()} Occupied={(pub.Occupied==1).sum()}")
     print(f"private: {len(priv)}  Empty={(priv.Occupied==0).sum()} Occupied={(priv.Occupied==1).sum()}")

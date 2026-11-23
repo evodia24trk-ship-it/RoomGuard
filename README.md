@@ -4,6 +4,9 @@
 Menggunakan Decision Tree Berbasis Sensor Ambience Smartphone
 
 **Kelompok 12:** Evodia Maribet Kristina Manalu & Hasbi
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/evodia24trk-ship-it/RoomGuard/blob/main/RoomGuard_Colab.ipynb)
+
 **Mata kuliah:** Workshop Machine Learning for IoT — UAS
 
 Sistem web yang mengklasifikasikan status keberadaan orang dalam ruangan ke
@@ -46,7 +49,8 @@ Coba: Light **5** Lux + Sound **36** dB → Empty (100%).
 | `app/` | Aplikasi web Flask (English UI): prediksi, batch CSV, dashboard, history CRUD (SQLite), decision path |
 | `src/build_dataset.py` | Membangun dataset gabungan 75/25 dari UCI + phyphox |
 | `src/train_model.py` | Grid search + 5-fold CV, evaluasi, simpan model & gambar |
-| `dataset/` | `combined_dataset_2000.csv`, `public_uci_sample_1500.csv`, `private_phyphox_500.csv`, `LABELING_STANDARD.md`, template lembar kehadiran |
+| `dataset/` | `combined_dataset_2000.csv`, `public_uci_sample_1500.csv`, `private_phyphox_500.csv`, `LABELING_STANDARD.md`, template lembar kehadiran, `DATASET_README.md` (cara memverifikasi dataset) |
+| `dataset/uci864_original_10129.csv` | File asli dari link UCI (10.129 baris, tanpa diubah). Setiap baris sampel publik bisa dilacak ke file ini lewat kolom `uci_row_id` — lihat `dataset/DATASET_README.md`. |
 | `model/` | `decision_tree_model.pkl`, `metrics.json`, confusion matrix / tree / feature importance / flowchart / arsitektur |
 | `docs/` | Laporan (25 hlm, .docx + .pdf), PPT (10 slide), Logbook (.xlsx), screenshot tampilan web |
 | `dataset/uci864_original_10129.csv` | File asli UCI 864 (10.129 baris) sebagai sumber |
