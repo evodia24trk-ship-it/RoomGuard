@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoomGuard — Room Occupancy Classifier</title>
+<style>
+:root{--green:#123524;--green2:#1e7a4c;--bg:#f4f7f5;--card:#fff;--text:#1c2b22;--muted:#5c6f64;--line:#dfe8e2}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--green);color:#fff;padding:28px 20px}header h1{margin:0;font-size:28px}header p{margin:6px 0 0;opacity:.85;max-width:720px}
+main{max-width:960px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:19px}label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input[type=number],input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:15px}
+button{background:var(--green2);color:#fff;border:0;border-radius:8px;padding:11px 18px;font-size:15px;cursor:pointer;margin:6px 6px 0 0}
+button.ghost{background:#fff;color:var(--green2);border:1px solid var(--green2)}
+.result{margin-top:14px;padding:14px;border-radius:10px;background:#eaf6ee;border:1px solid #bfe3cd}
+.result.occupied{background:#fff3e0;border-color:#f2c48d}
+.result b{font-size:20px}.muted{color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:#f0f5f2;border-radius:10px;padding:12px}.stat b{font-size:24px;display:block}.stat span{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left}
+details{margin-top:10px}summary{cursor:pointer;color:var(--green2)}code{background:#f0f5f2;padding:2px 5px;border-radius:5px}
+.err{color:#b3261e;font-size:13px;margin-top:6px}.pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600}
+.pill.occ{background:#f2c48d}.pill.emp{background:#bfe3cd}
+@media(max-width:600px){header h1{font-size:22px}}
+</style>
+</head>
+<body>
+<header>
+<h1>RoomGuard</h1>
+<p>Room occupancy classification (Occupied / Empty) from smartphone ambient sensors — light (Lux) and sound (dB) — using a Decision Tree trained on 2,000 rows (UCI Room Occupancy Estimation 864 + phyphox recordings).</p>
+<p style="color:#cfe3d4">Group 12 — Evodia Maribet Kristina Manalu &amp; Hasbi · Workshop Machine Learning for IoT · <a style="color:#fff" href="https://github.com/evodia24trk-ship-it/RoomGuard">GitHub repo</a> · <a style="color:#fff" href="https://colab.research.google.com/github/evodia24trk-ship-it/RoomGuard/blob/main/RoomGuard_Colab.ipynb">Open in Colab</a></p>
+</header>
+<main>
+<section class="card">
+<h2>Single Prediction</h2>
+<label>Light (Lux) — 0 to 2000</label>
+<input id="lux" type="number" min="0" max="2000" step="0.01" placeholder="e.g. 120">
+<label>Sound (dB) — 20 to 120</label>
+<input id="db" type="number" min="20" max="120" step="0.01" placeholder="e.g. 56">
+<div class="err" id="err"></div>
+<button onclick="classify()">Classify</button>
+<button class="ghost" onclick="preset(5,36)">Dark &amp; quiet (5 / 36)</button>
+<button class="ghost" onclick="preset(120,56)">Bright &amp; noisy (120 / 56)</button>
+<button class="ghost" onclick="preset(90,37)">Bright but quiet (90 / 37)</button>
+<button class="ghost" onclick="preset(8,52)">Dark but noisy (8 / 52)</button>
+<div id="out"></div>
+</section>
+
+<section class="card">
+<h2>Model Dashboard</h2>
+<div class="grid">
+<div class="stat"><b>94.83%</b><span>Test accuracy (n=600)</span></div>
+<div class="stat"><b>93.56%</b><span>Macro F1</span></div>
+<div class="stat"><b>92.59%</b><span>Macro precision</span></div>
+<div class="stat"><b>94.69%</b><span>Macro recall</span></div>
+<div class="stat"><b>95.24%</b><span>5-fold CV macro F1</span></div>
+</div>
+<p style="margin-top:14px">Confusion matrix (test set): TN <b>418</b>, FP <b>22</b>, FN <b>9</b>, TP <b>151</b>.</p>
+<p>Feature importance: <b>Sound 86.24%</b>, Light 13.76%. First tree rule: <code>Sound_dB &le; 38.82</code>.</p>
+</section>
+
+<section class="card">
+<h2>Batch Prediction (CSV)</h2>
+<p class="muted">Upload a CSV with columns <code>Light_Lux, Sound_dB</code> (optional: <code>Occupied</code> for batch accuracy). Up to 5,000 rows. <a href="#" onclick="downloadSample();return false">Download sample CSV</a></p>
+<input type="file" id="csvfile" accept=".csv">
+<button onclick="runBatch()">Run batch</button>
+<div id="batch"></div>
+</section>
+
+<section class="card">
+<h2>Prediction History</h2>
+<p class="muted">Saved in this browser only (localStorage). Nothing is sent to a server.</p>
+<table><thead><tr><th>Light</th><th>Sound</th><th>Result</th><th>Confidence</th><th></th></tr></thead><tbody id="hist"></tbody></table>
+<button class="ghost" onclick="clearHist()">Clear history</button>
+</section>
+
+<section class="card">
+<h2>Model &amp; Dataset</h2>
+<p>Model: Decision Tree (gini, max_depth 7, min_samples_leaf 10, class_weight balanced). Dataset: 2,000 rows — 1,500 public (stratified sample of UCI 864, 10,129 rows) + 500 private (phyphox, 30-second interval). Features: Light_Lux = mean of S1–S4 Light; Sound_dB converted from UCI Volts with <code>20·log10(V/0.05)+35</code>. Labels follow a fixed standard: occupied if at least one person is physically in the room for the whole 30-second interval, headcount written in the attendance log <i>before</i> sensor values are read; transition intervals are discarded; two observers must agree.</p>
+<p class="muted">Note: the 500 private rows currently in the repo are calibrated simulated data following the phyphox protocol — not real recordings yet. They must be replaced with real phyphox recordings and the model retrained before the presentation (see README).</p>
+</section>
+</main>
+<script>
+const TREE = {"leaf": false, "feature": 1, "threshold": 38.81500053405762, "left": {"leaf": false, "feature": 0, "threshold": 51.625, "left": {"leaf": false, "feature": 1, "threshold": 38.540000915527344, "left": {"leaf": false, "feature": 0, "threshold": 43.625, "left": {"leaf": false, "feature": 1, "threshold": 35.67999839782715, "left": {"leaf": false, "feature": 1, "threshold": 35.41499900817871, "left": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}, "right": {"leaf": true, "value": [0.7650822669104206, 0.23491773308957953], "prob": [0.7650822669104206, 0.23491773308957953]}}, "right": {"leaf": false, "feature": 0, "threshold": 0.125, "left": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}, "right": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}}}, "right": {"leaf": false, "feature": 0, "threshold": 45.81500053405762, "left": {"leaf": true, "value": [0.591414944356121, 0.4085850556438792], "prob": [0.5914149443561209, 0.4085850556438791]}, "right": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}}}, "right": {"leaf": false, "feature": 0, "threshold": 6.119999885559082, "left": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}, "right": {"leaf": true, "value": [0.5467372134038802, 0.45326278659611996], "prob": [0.5467372134038802, 0.45326278659611996]}}}, "right": {"leaf": true, "value": [0.04602821083890125, 0.9539717891610988], "prob": [0.04602821083890125, 0.9539717891610988]}}, "right": {"leaf": false, "feature": 0, "threshold": 5.664999961853027, "left": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}, "right": {"leaf": false, "feature": 1, "threshold": 43.295000076293945, "left": {"leaf": false, "feature": 0, "threshold": 61.8700008392334, "left": {"leaf": false, "feature": 0, "threshold": 17.229999542236328, "left": {"leaf": true, "value": [0.09370277078085638, 0.9062972292191436], "prob": [0.09370277078085638, 0.9062972292191436]}, "right": {"leaf": false, "feature": 1, "threshold": 40.17499923706055, "left": {"leaf": false, "feature": 0, "threshold": 29.675000190734863, "left": {"leaf": true, "value": [0.26571428571428574, 0.7342857142857144], "prob": [0.2657142857142857, 0.7342857142857143]}, "right": {"leaf": true, "value": [0.44879356568364615, 0.5512064343163539], "prob": [0.44879356568364615, 0.5512064343163539]}}, "right": {"leaf": false, "feature": 1, "threshold": 41.989999771118164, "left": {"leaf": true, "value": [0.7169603524229077, 0.2830396475770926], "prob": [0.7169603524229076, 0.28303964757709255]}, "right": {"leaf": true, "value": [0.3944392082940623, 0.6055607917059379], "prob": [0.3944392082940622, 0.6055607917059378]}}}}, "right": {"leaf": true, "value": [0.0, 1.0], "prob": [0.0, 1.0]}}, "right": {"leaf": false, "feature": 0, "threshold": 59.92499923706055, "left": {"leaf": false, "feature": 0, "threshold": 32.84499931335449, "left": {"leaf": true, "value": [0.0, 1.0], "prob": [0.0, 1.0]}, "right": {"leaf": false, "feature": 1, "threshold": 45.95000076293945, "left": {"leaf": true, "value": [0.0, 1.0], "prob": [0.0, 1.0]}, "right": {"leaf": false, "feature": 1, "threshold": 49.09499931335449, "left": {"leaf": true, "value": [0.2053886925795053, 0.7946113074204948], "prob": [0.2053886925795053, 0.7946113074204948]}, "right": {"leaf": true, "value": [0.04602821083890125, 0.9539717891610988], "prob": [0.04602821083890125, 0.9539717891610988]}}}}, "right": {"leaf": true, "value": [0.0, 1.0], "prob": [0.0, 1.0]}}}}};
+const FEATS = ["Light_Lux","Sound_dB"];
+function predictTree(x){
+  let n = TREE, path = [];
+  while(!n.leaf){
+    const f = FEATS[n.feature], v = x[n.feature];
+    const goLeft = v <= n.threshold;
+    path.push(f + " = " + v + " " + (goLeft ? "<=" : ">") + " " + n.threshold.toFixed(2) + " → go " + (goLeft ? "left" : "right"));
+    n = goLeft ? n.left : n.right;
+  }
+  const p = n.prob; const label = p[1] >= p[0] ? "Occupied" : "Empty";
+  return {label, probEmpty: p[0], probOcc: p[1], conf: Math.max(p[0], p[1]), path};
+}
+function saveHist(lux, db, r){
+  const h = JSON.parse(localStorage.getItem("roomguard_hist") || "[]");
+  h.unshift({lux, db, label: r.label, conf: r.conf, t: new Date().toLocaleString()});
+  localStorage.setItem("roomguard_hist", JSON.stringify(h.slice(0, 100)));
+  renderHist();
+}
+function renderHist(){
+  const h = JSON.parse(localStorage.getItem("roomguard_hist") || "[]");
+  document.getElementById("hist").innerHTML = h.map((r,i)=>
+    `<tr><td>${r.lux}</td><td>${r.db}</td><td><span class="pill ${r.label==="Occupied"?"occ":"emp"}">${r.label}</span></td><td>${(r.conf*100).toFixed(1)}%</td><td><a href="#" onclick="delHist(${i});return false">Delete</a></td></tr>`).join("") || `<tr><td colspan="5" class="muted">No predictions yet.</td></tr>`;
+}
+function delHist(i){ if(!confirm("Delete this prediction?")) return; const h=JSON.parse(localStorage.getItem("roomguard_hist")||"[]"); h.splice(i,1); localStorage.setItem("roomguard_hist", JSON.stringify(h)); renderHist(); }
+function clearHist(){ if(!confirm("Clear all history?")) return; localStorage.removeItem("roomguard_hist"); renderHist(); }
+function preset(lux, db){ document.getElementById("lux").value=lux; document.getElementById("db").value=db; classify(); }
+function classify(){
+  const lux = parseFloat(document.getElementById("lux").value);
+  const db = parseFloat(document.getElementById("db").value);
+  const err = document.getElementById("err");
+  if(isNaN(lux) || lux < 0 || lux > 2000){ err.textContent = "Light must be a number between 0 and 2000 Lux."; return; }
+  if(isNaN(db) || db < 20 || db > 120){ err.textContent = "Sound must be a number between 20 and 120 dB."; return; }
+  err.textContent = "";
+  const r = predictTree([lux, db]);
+  const rec = r.label === "Occupied"
+    ? "Someone is in the room — keep the lights and AC on."
+    : "Room looks empty — you can turn the lights and AC off to save energy.";
+  document.getElementById("out").innerHTML = `<div class="result ${r.label==="Occupied"?"occupied":""}">
+    <b>${r.label}</b> — confidence ${(r.conf*100).toFixed(1)}%<br>
+    <span class="muted">Empty ${(r.probEmpty*100).toFixed(1)}% · Occupied ${(r.probOcc*100).toFixed(1)}%</span><br>${rec}
+    <details><summary>Decision path</summary><code>${r.path.join("<br>")}</code></details></div>`;
+  saveHist(lux, db, r);
+}
+function downloadSample(){
+  const csv = "Light_Lux,Sound_dB,Occupied\n120,56,1\n5,36,0\n90,37,0\n8,52,1\n45,48,1\n3,33,0\n";
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"})); a.download = "roomguard_sample.csv"; a.click();
+}
+function runBatch(){
+  const f = document.getElementById("csvfile").files[0];
+  const box = document.getElementById("batch");
+  if(!f){ box.innerHTML = `<p class="err">No file selected.</p>`; return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const lines = reader.result.trim().split(/\r?\n/);
+    const head = lines[0].split(",").map(s=>s.trim());
+    const li = head.indexOf("Light_Lux"), si = head.indexOf("Sound_dB"), oi = head.indexOf("Occupied");
+    if(li < 0 || si < 0){ box.innerHTML = `<p class="err">CSV must have Light_Lux and Sound_dB columns.</p>`; return; }
+    let rows = "", correct = 0, labelled = 0, n = 0;
+    for(const line of lines.slice(1)){
+      if(!line.trim()) continue;
+      const c = line.split(","); const lux = parseFloat(c[li]), db = parseFloat(c[si]);
+      if(isNaN(lux) || isNaN(db)) continue;
+      const r = predictTree([lux, db]); n++;
+      let acc = "";
+      if(oi >= 0 && (c[oi] === "0" || c[oi] === "1")){ labelled++; const y = parseInt(c[oi]); if((r.label === "Occupied") === (y === 1)) correct++; acc = y === 1 ? "Occupied" : "Empty"; }
+      rows += `<tr><td>${lux}</td><td>${db}</td><td><span class="pill ${r.label==="Occupied"?"occ":"emp"}">${r.label}</span></td><td>${(r.conf*100).toFixed(1)}%</td><td>${acc}</td></tr>`;
+    }
+    box.innerHTML = `<p>${n} rows classified.${labelled ? ` Batch accuracy: <b>${(correct/labelled*100).toFixed(2)}%</b> (${correct}/${labelled} labelled rows).` : ""}</p>
+    <table><thead><tr><th>Light</th><th>Sound</th><th>Prediction</th><th>Confidence</th><th>Actual</th></tr></thead><tbody>${rows}</tbody></table>`;
+  };
+  reader.readAsText(f);
+}
+renderHist();
+</script>
+</body>
+</html>
