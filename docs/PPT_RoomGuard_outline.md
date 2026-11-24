@@ -78,9 +78,9 @@
 ## Slide 11 — Tambah Dataset
 
 - Pengunjung web bisa menambah data sendiri: isi Cahaya, Suara, dan Label lewat form, atau unggah file CSV (kolom Light_Lux, Sound_dB, Occupancy).
-- Data tambahan muncul di tabel, bisa dihapus per baris, dan bisa diunduh lagi sebagai CSV. Penghitung total berubah otomatis — contohnya, 1 baris tambahan membuat total jadi 2.001 baris.
+- Data tambahan muncul di tabel, bisa dihapus per baris, dan bisa diunduh lagi sebagai CSV. Penghitung total berubah otomatis — contohnya, 2 baris tambahan membuat total jadi 2.002 baris.
 - Yang perlu disampaikan dengan jujur: data tambahan tersimpan di browser dan belum melatih ulang model. Untuk melatih ulang, datanya dipakai lewat notebook Colab.
-- [Sertakan screenshot: docs/screenshots/web-tambah-dataset.png — Bagian Tambah Dataset di web, dengan 1 baris tambahan (150 Lux / 52 dB / Terisi), total 2.001 baris]
+- [Sertakan screenshot: docs/screenshots/web-tambah-dataset.png — Bagian Tambah Dataset di web, dengan 2 baris tambahan (120 Lux / 60 dB / Terisi dan 15 Lux / 30 dB / Kosong), total 2.002 baris]
 - Poin bicara: tunjukkan langsung cara menambah satu baris, lalu tunjukkan penghitung totalnya berubah.
 
 ## Slide 12 — Keterbatasan
