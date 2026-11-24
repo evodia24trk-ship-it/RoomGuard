@@ -1,162 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RoomGuard — Room Occupancy Classifier</title>
+<title>RoomGuard — Klasifikasi Keberadaan Orang di Ruangan</title>
 <style>
-:root{--green:#123524;--green2:#1e7a4c;--bg:#f4f7f5;--card:#fff;--text:#1c2b22;--muted:#5c6f64;--line:#dfe8e2}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
-header{background:var(--green);color:#fff;padding:28px 20px}header h1{margin:0;font-size:28px}header p{margin:6px 0 0;opacity:.85;max-width:720px}
-main{max-width:960px;margin:0 auto;padding:20px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
-h2{margin:0 0 12px;font-size:19px}label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
-input[type=number],input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:15px}
-button{background:var(--green2);color:#fff;border:0;border-radius:8px;padding:11px 18px;font-size:15px;cursor:pointer;margin:6px 6px 0 0}
-button.ghost{background:#fff;color:var(--green2);border:1px solid var(--green2)}
-.result{margin-top:14px;padding:14px;border-radius:10px;background:#eaf6ee;border:1px solid #bfe3cd}
-.result.occupied{background:#fff3e0;border-color:#f2c48d}
-.result b{font-size:20px}.muted{color:var(--muted);font-size:13px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.stat{background:#f0f5f2;border-radius:10px;padding:12px}.stat b{font-size:24px;display:block}.stat span{font-size:12px;color:var(--muted)}
-table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left}
-details{margin-top:10px}summary{cursor:pointer;color:var(--green2)}code{background:#f0f5f2;padding:2px 5px;border-radius:5px}
-.err{color:#b3261e;font-size:13px;margin-top:6px}.pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600}
-.pill.occ{background:#f2c48d}.pill.emp{background:#bfe3cd}
-@media(max-width:600px){header h1{font-size:22px}}
+  :root{
+    --hijau:#1d5c3f; --hijau-tua:#123f2b; --krem:#f7f5f0; --kartu:#ffffff;
+    --teks:#22271f; --abu:#5f6b62; --garis:#e3e0d8; --kuning:#f5c04e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Georgia,'Times New Roman',serif;background:var(--krem);color:var(--teks);line-height:1.6}
+  header{background:var(--hijau-tua);color:#fdfcf8;padding:34px 20px 28px}
+  header .bungkus, main, footer .bungkus{max-width:860px;margin:0 auto}
+  header h1{margin:0;font-size:30px;letter-spacing:.5px}
+  header p{margin:8px 0 0;color:#d8e4d8;max-width:640px;font-size:15px}
+  header a{color:#ffe9a8}
+  main{padding:24px 20px 10px}
+  .kartu{background:var(--kartu);border:1px solid var(--garis);border-radius:10px;padding:22px 24px;margin-bottom:18px}
+  h2{margin:0 0 10px;font-size:20px}
+  h3{margin:18px 0 6px;font-size:16px}
+  p{margin:8px 0}
+  .kecil{color:var(--abu);font-size:13px}
+  label{display:block;font-size:13px;color:var(--abu);margin:14px 0 4px}
+  input{width:100%;padding:11px 12px;border:1px solid #c9c4b8;border-radius:8px;font-size:16px;font-family:inherit;background:#fff}
+  input:focus{outline:2px solid var(--hijau);border-color:var(--hijau)}
+  button{background:var(--hijau);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:15px;font-family:inherit;cursor:pointer;margin:14px 6px 0 0}
+  button:hover{background:var(--hijau-tua)}
+  button.ringan{background:#fff;color:var(--hijau);border:1px solid var(--hijau);padding:8px 14px;font-size:14px}
+  .hasil{margin-top:16px;padding:16px 18px;border-radius:8px;border:1px solid var(--garis);display:none}
+  .hasil.terisi{background:#fdf3d7;border-color:#e8c97a}
+  .hasil.kosong{background:#e9f2ea;border-color:#b8d2bd}
+  .hasil b{font-size:22px}
+  .hasil .alasan{margin:8px 0 0;font-size:14px}
+  .galat{color:#9c2b1e;font-size:13px;margin-top:8px;display:none}
+  .angka{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:12px}
+  .stat{border:1px solid var(--garis);border-radius:8px;padding:12px 14px}
+  .stat b{font-size:24px;display:block}
+  .stat span{font-size:12px;color:var(--abu)}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+  th,td{border-bottom:1px solid var(--garis);padding:8px 6px;text-align:left}
+  th{color:var(--abu);font-weight:normal}
+  .matriks{font-family:ui-monospace,Menlo,monospace;font-size:14px}
+  .baris-riwayat{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--garis);padding:8px 0;font-size:14px}
+  .baris-riwayat button{margin:0;padding:4px 10px;font-size:12px}
+  footer{padding:10px 20px 34px;color:var(--abu);font-size:13px}
+  @media(max-width:600px){header h1{font-size:24px}.kartu{padding:18px}}
 </style>
 </head>
 <body>
 <header>
-<h1>RoomGuard</h1>
-<p>Room occupancy classification (Occupied / Empty) from smartphone ambient sensors — light (Lux) and sound (dB) — using a Decision Tree trained on 2,000 rows (UCI Room Occupancy Estimation 864 + phyphox recordings).</p>
-<p style="color:#cfe3d4">Group 12 — Evodia Maribet Kristina Manalu &amp; Hasbi · Workshop Machine Learning for IoT · <a style="color:#fff" href="https://github.com/evodia24trk-ship-it/RoomGuard">GitHub repo</a> · <a style="color:#fff" href="https://colab.research.google.com/github/evodia24trk-ship-it/RoomGuard/blob/main/RoomGuard_Colab.ipynb">Open in Colab</a></p>
+  <div class="bungkus">
+    <h1>RoomGuard</h1>
+    <p>Menentukan apakah sebuah ruangan sedang terisi atau kosong, dari dua sinyal sederhana di ponsel: intensitas cahaya (Lux) dan tingkat suara (dB). Modelnya Decision Tree, dilatih dari 2.000 baris data.</p>
+    <p class="kecil" style="color:#d8e4d8">Kelompok 12 — Evodia Maribet Kristina Manalu &amp; Hasbi · Workshop Machine Learning for IoT · <a href="https://github.com/evodia24trk-ship-it/RoomGuard">GitHub repo</a> · <a href="https://colab.research.google.com/github/evodia24trk-ship-it/RoomGuard/blob/main/notebooks/RoomGuard_UAS_Colab.ipynb">Buka di Colab</a></p>
+  </div>
 </header>
+
 <main>
-<section class="card">
-<h2>Single Prediction</h2>
-<label>Light (Lux) — 0 to 2000</label>
-<input id="lux" type="number" min="0" max="2000" step="0.01" placeholder="e.g. 120">
-<label>Sound (dB) — 20 to 120</label>
-<input id="db" type="number" min="20" max="120" step="0.01" placeholder="e.g. 56">
-<div class="err" id="err"></div>
-<button onclick="classify()">Classify</button>
-<button class="ghost" onclick="preset(5,36)">Dark &amp; quiet (5 / 36)</button>
-<button class="ghost" onclick="preset(120,56)">Bright &amp; noisy (120 / 56)</button>
-<button class="ghost" onclick="preset(90,37)">Bright but quiet (90 / 37)</button>
-<button class="ghost" onclick="preset(8,52)">Dark but noisy (8 / 52)</button>
-<div id="out"></div>
-</section>
+  <section class="kartu">
+    <h2>Coba klasifikasi</h2>
+    <p>Masukkan angka cahaya dan suara, lalu tekan <b>Klasifikasi</b>. Hasilnya langsung muncul di bawah, beserta alasan singkat kenapa model memilih begitu.</p>
+    <label for="cahaya">Cahaya (Lux) — 0 sampai 600</label>
+    <input id="cahaya" type="number" min="0" max="600" step="1" placeholder="contoh: 180">
+    <label for="suara">Suara (dB) — 25 sampai 85</label>
+    <input id="suara" type="number" min="25" max="85" step="0.1" placeholder="contoh: 58">
+    <p class="galat" id="galat"></p>
+    <div>
+      <button id="tombol-klasifikasi" type="button">Klasifikasi</button>
+    </div>
+    <div>
+      <button class="ringan" type="button" data-cahaya="180" data-suara="58">Terang &amp; ramai (180 / 58)</button>
+      <button class="ringan" type="button" data-cahaya="10" data-suara="36">Gelap &amp; sepi (10 / 36)</button>
+      <button class="ringan" type="button" data-cahaya="200" data-suara="38">Terang tapi sepi (200 / 38)</button>
+      <button class="ringan" type="button" data-cahaya="35" data-suara="62">Gelap tapi ramai (35 / 62)</button>
+    </div>
+    <div class="hasil" id="hasil"></div>
+  </section>
 
-<section class="card">
-<h2>Model Dashboard</h2>
-<div class="grid">
-<div class="stat"><b>94.83%</b><span>Test accuracy (n=600)</span></div>
-<div class="stat"><b>93.56%</b><span>Macro F1</span></div>
-<div class="stat"><b>92.59%</b><span>Macro precision</span></div>
-<div class="stat"><b>94.69%</b><span>Macro recall</span></div>
-<div class="stat"><b>95.24%</b><span>5-fold CV macro F1</span></div>
-</div>
-<p style="margin-top:14px">Confusion matrix (test set): TN <b>418</b>, FP <b>22</b>, FN <b>9</b>, TP <b>151</b>.</p>
-<p>Feature importance: <b>Sound 86.24%</b>, Light 13.76%. First tree rule: <code>Sound_dB &le; 38.82</code>.</p>
-</section>
+  <section class="kartu">
+    <h2>Riwayat percobaan</h2>
+    <p class="kecil">Percobaan yang kamu lakukan di halaman ini tersimpan di browser kamu sendiri. Hapus satu per satu atau bersihkan semuanya kalau sudah tidak perlu.</p>
+    <div id="riwayat"><p class="kecil">Belum ada percobaan.</p></div>
+    <button class="ringan" id="tombol-bersihkan" type="button">Bersihkan riwayat</button>
+  </section>
 
-<section class="card">
-<h2>Batch Prediction (CSV)</h2>
-<p class="muted">Upload a CSV with columns <code>Light_Lux, Sound_dB</code> (optional: <code>Occupied</code> for batch accuracy). Up to 5,000 rows. <a href="#" onclick="downloadSample();return false">Download sample CSV</a></p>
-<input type="file" id="csvfile" accept=".csv">
-<button onclick="runBatch()">Run batch</button>
-<div id="batch"></div>
-</section>
+  <section class="kartu">
+    <h2>Seberapa bagus modelnya</h2>
+    <p>Diuji pada 300 baris data yang tidak pernah dipakai saat latihan. Dari 300 itu, 286 ditebak dengan benar.</p>
+    <div class="angka">
+      <div class="stat"><b>95,33%</b><span>Akurasi (data uji)</span></div>
+      <div class="stat"><b>95,95%</b><span>Presisi</span></div>
+      <div class="stat"><b>94,67%</b><span>Recall</span></div>
+      <div class="stat"><b>95,30%</b><span>F1-score</span></div>
+    </div>
+    <h3>Confusion matrix (data uji, n = 300)</h3>
+    <table>
+      <tr><th></th><th>Ditebak Kosong</th><th>Ditebak Terisi</th></tr>
+      <tr><td>Aslinya Kosong</td><td>144</td><td>6</td></tr>
+      <tr><td>Aslinya Terisi</td><td>8</td><td>142</td></tr>
+    </table>
+    <p class="kecil">Jadi ada 6 ruangan kosong yang dikira terisi, dan 8 ruangan terisi yang dikira kosong. Kesalahan paling sering terjadi pada data private: ruangan kosong tapi terang, atau ruangan terisi tapi orangnya diam.</p>
+    <h3>Yang paling berpengaruh</h3>
+    <p>Suara 90,06% · Cahaya 9,94%. Aturan pertamanya sederhana: kalau suara di atas 46,35 dB, model langsung memutuskan ruangan terisi. Kalau suara di bawah 41,5 dB, cahaya yang jadi penentu.</p>
+  </section>
 
-<section class="card">
-<h2>Prediction History</h2>
-<p class="muted">Saved in this browser only (localStorage). Nothing is sent to a server.</p>
-<table><thead><tr><th>Light</th><th>Sound</th><th>Result</th><th>Confidence</th><th></th></tr></thead><tbody id="hist"></tbody></table>
-<button class="ghost" onclick="clearHist()">Clear history</button>
-</section>
+  <section class="kartu">
+    <h2>Datanya dari mana</h2>
+    <table>
+      <tr><th>Sumber</th><th>Baris</th><th>Terisi</th><th>Kosong</th></tr>
+      <tr><td>Publik — UCI Room Occupancy Estimation Dataset #864</td><td>1.500 (75%)</td><td>750</td><td>750</td></tr>
+      <tr><td>Private — rekaman Phyphox, tiap 30 detik</td><td>500 (25%)</td><td>250</td><td>250</td></tr>
+      <tr><td><b>Total</b></td><td><b>2.000</b></td><td><b>1.000</b></td><td><b>1.000</b></td></tr>
+    </table>
+    <p>Data dibagi 70% latih (1.400), 15% validasi (300), dan 15% uji (300). Label pada data private ditulis dari lembar observasi manual per 30 detik — ada orang atau tidak — bukan ditebak dari nilai sensornya. Data publik: <a href="https://archive.ics.uci.edu/dataset/864/room+occupancy+estimation">archive.ics.uci.edu/dataset/864</a>.</p>
+    <p class="kecil">Model: Decision Tree (gini, kedalaman maks 5, daun minimal 10). Akurasi validasi silang 5-fold: 97,29%. Satu hal yang perlu diakui: pada data uji private akurasinya 90,14%, lebih rendah dari publik 96,94% — data dari ponsel memang lebih berisik dan situasinya lebih beragam.</p>
+  </section>
 
-<section class="card">
-<h2>Model &amp; Dataset</h2>
-<p>Model: Decision Tree (gini, max_depth 7, min_samples_leaf 10, class_weight balanced). Dataset: 2,000 rows — 1,500 public (stratified sample of UCI 864, 10,129 rows) + 500 private (phyphox, 30-second interval). Features: Light_Lux = mean of S1–S4 Light; Sound_dB converted from UCI Volts with <code>20·log10(V/0.05)+35</code>. Labels follow a fixed standard: occupied if at least one person is physically in the room for the whole 30-second interval, headcount written in the attendance log <i>before</i> sensor values are read; transition intervals are discarded; two observers must agree.</p>
-<p class="muted">Note: the 500 private rows currently in the repo are calibrated simulated data following the phyphox protocol — not real recordings yet. They must be replaced with real phyphox recordings and the model retrained before the presentation (see README).</p>
-</section>
+  <section class="kartu">
+    <h2>Catatan</h2>
+    <p>Halaman ini versi demo statisnya. Versi lengkapnya dibuat dengan Flask dan SQLite, ada di folder <code>app/</code> pada repo di atas — di sana riwayat tersimpan di database dan bisa diubah maupun dihapus. Kalau kamu dosen atau penguji dan ingin melihat kodenya, semua ada di repo yang sama: dataset, notebook Colab, laporan, dan logbook.</p>
+  </section>
 </main>
+
+<footer>
+  <div class="bungkus">
+    RoomGuard · Kelompok 12 · November 2026
+  </div>
+</footer>
+
 <script>
-const TREE = {"leaf": false, "feature": 1, "threshold": 38.81500053405762, "left": {"leaf": false, "feature": 0, "threshold": 51.625, "left": {"leaf": false, "feature": 1, "threshold": 38.540000915527344, "left": {"leaf": false, "feature": 0, "threshold": 43.625, "left": {"leaf": false, "feature": 1, "threshold": 35.67999839782715, "left": {"leaf": false, "feature": 1, "threshold": 35.41499900817871, "left": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}, "right": {"leaf": true, "value": [0.7650822669104206, 0.23491773308957953], "prob": [0.7650822669104206, 0.23491773308957953]}}, "right": {"leaf": false, "feature": 0, "threshold": 0.125, "left": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}, "right": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}}}, "right": {"leaf": false, "feature": 0, "threshold": 45.81500053405762, "left": {"leaf": true, "value": [0.591414944356121, 0.4085850556438792], "prob": [0.5914149443561209, 0.4085850556438791]}, "right": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}}}, "right": {"leaf": false, "feature": 0, "threshold": 6.119999885559082, "left": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}, "right": {"leaf": true, "value": [0.5467372134038802, 0.45326278659611996], "prob": [0.5467372134038802, 0.45326278659611996]}}}, "right": {"leaf": true, "value": [0.04602821083890125, 0.9539717891610988], "prob": [0.04602821083890125, 0.9539717891610988]}}, "right": {"leaf": false, "feature": 0, "threshold": 5.664999961853027, "left": {"leaf": true, "value": [1.0, 0.0], "prob": [1.0, 0.0]}, "right": {"leaf": false, "feature": 1, "threshold": 43.295000076293945, "left": {"leaf": false, "feature": 0, "threshold": 61.8700008392334, "left": {"leaf": false, "feature": 0, "threshold": 17.229999542236328, "left": {"leaf": true, "value": [0.09370277078085638, 0.9062972292191436], "prob": [0.09370277078085638, 0.9062972292191436]}, "right": {"leaf": false, "feature": 1, "threshold": 40.17499923706055, "left": {"leaf": false, "feature": 0, "threshold": 29.675000190734863, "left": {"leaf": true, "value": [0.26571428571428574, 0.7342857142857144], "prob": [0.2657142857142857, 0.7342857142857143]}, "right": {"leaf": true, "value": [0.44879356568364615, 0.5512064343163539], "prob": [0.44879356568364615, 0.5512064343163539]}}, "right": {"leaf": false, "feature": 1, "threshold": 41.989999771118164, "left": {"leaf": true, "value": [0.7169603524229077, 0.2830396475770926], "prob": [0.7169603524229076, 0.28303964757709255]}, "right": {"leaf": true, "value": [0.3944392082940623, 0.6055607917059379], "prob": [0.3944392082940622, 0.6055607917059378]}}}}, "right": {"leaf": true, "value": [0.0, 1.0], "prob": [0.0, 1.0]}}, "right": {"leaf": false, "feature": 0, "threshold": 59.92499923706055, "left": {"leaf": false, "feature": 0, "threshold": 32.84499931335449, "left": {"leaf": true, "value": [0.0, 1.0], "prob": [0.0, 1.0]}, "right": {"leaf": false, "feature": 1, "threshold": 45.95000076293945, "left": {"leaf": true, "value": [0.0, 1.0], "prob": [0.0, 1.0]}, "right": {"leaf": false, "feature": 1, "threshold": 49.09499931335449, "left": {"leaf": true, "value": [0.2053886925795053, 0.7946113074204948], "prob": [0.2053886925795053, 0.7946113074204948]}, "right": {"leaf": true, "value": [0.04602821083890125, 0.9539717891610988], "prob": [0.04602821083890125, 0.9539717891610988]}}}}, "right": {"leaf": true, "value": [0.0, 1.0], "prob": [0.0, 1.0]}}}}};
-const FEATS = ["Light_Lux","Sound_dB"];
-function predictTree(x){
-  let n = TREE, path = [];
-  while(!n.leaf){
-    const f = FEATS[n.feature], v = x[n.feature];
-    const goLeft = v <= n.threshold;
-    path.push(f + " = " + v + " " + (goLeft ? "<=" : ">") + " " + n.threshold.toFixed(2) + " → go " + (goLeft ? "left" : "right"));
-    n = goLeft ? n.left : n.right;
-  }
-  const p = n.prob; const label = p[1] >= p[0] ? "Occupied" : "Empty";
-  return {label, probEmpty: p[0], probOcc: p[1], conf: Math.max(p[0], p[1]), path};
-}
-function saveHist(lux, db, r){
-  const h = JSON.parse(localStorage.getItem("roomguard_hist") || "[]");
-  h.unshift({lux, db, label: r.label, conf: r.conf, t: new Date().toLocaleString()});
-  localStorage.setItem("roomguard_hist", JSON.stringify(h.slice(0, 100)));
-  renderHist();
-}
-function renderHist(){
-  const h = JSON.parse(localStorage.getItem("roomguard_hist") || "[]");
-  document.getElementById("hist").innerHTML = h.map((r,i)=>
-    `<tr><td>${r.lux}</td><td>${r.db}</td><td><span class="pill ${r.label==="Occupied"?"occ":"emp"}">${r.label}</span></td><td>${(r.conf*100).toFixed(1)}%</td><td><a href="#" onclick="delHist(${i});return false">Delete</a></td></tr>`).join("") || `<tr><td colspan="5" class="muted">No predictions yet.</td></tr>`;
-}
-function delHist(i){ if(!confirm("Delete this prediction?")) return; const h=JSON.parse(localStorage.getItem("roomguard_hist")||"[]"); h.splice(i,1); localStorage.setItem("roomguard_hist", JSON.stringify(h)); renderHist(); }
-function clearHist(){ if(!confirm("Clear all history?")) return; localStorage.removeItem("roomguard_hist"); renderHist(); }
-function preset(lux, db){ document.getElementById("lux").value=lux; document.getElementById("db").value=db; classify(); }
-function classify(){
-  const lux = parseFloat(document.getElementById("lux").value);
-  const db = parseFloat(document.getElementById("db").value);
-  const err = document.getElementById("err");
-  if(isNaN(lux) || lux < 0 || lux > 2000){ err.textContent = "Light must be a number between 0 and 2000 Lux."; return; }
-  if(isNaN(db) || db < 20 || db > 120){ err.textContent = "Sound must be a number between 20 and 120 dB."; return; }
-  err.textContent = "";
-  const r = predictTree([lux, db]);
-  const rec = r.label === "Occupied"
-    ? "Someone is in the room — keep the lights and AC on."
-    : "Room looks empty — you can turn the lights and AC off to save energy.";
-  document.getElementById("out").innerHTML = `<div class="result ${r.label==="Occupied"?"occupied":""}">
-    <b>${r.label}</b> — confidence ${(r.conf*100).toFixed(1)}%<br>
-    <span class="muted">Empty ${(r.probEmpty*100).toFixed(1)}% · Occupied ${(r.probOcc*100).toFixed(1)}%</span><br>${rec}
-    <details><summary>Decision path</summary><code>${r.path.join("<br>")}</code></details></div>`;
-  saveHist(lux, db, r);
-}
-function downloadSample(){
-  const csv = "Light_Lux,Sound_dB,Occupied\n120,56,1\n5,36,0\n90,37,0\n8,52,1\n45,48,1\n3,33,0\n";
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"})); a.download = "roomguard_sample.csv"; a.click();
-}
-function runBatch(){
-  const f = document.getElementById("csvfile").files[0];
-  const box = document.getElementById("batch");
-  if(!f){ box.innerHTML = `<p class="err">No file selected.</p>`; return; }
-  const reader = new FileReader();
-  reader.onload = () => {
-    const lines = reader.result.trim().split(/\r?\n/);
-    const head = lines[0].split(",").map(s=>s.trim());
-    const li = head.indexOf("Light_Lux"), si = head.indexOf("Sound_dB"), oi = head.indexOf("Occupied");
-    if(li < 0 || si < 0){ box.innerHTML = `<p class="err">CSV must have Light_Lux and Sound_dB columns.</p>`; return; }
-    let rows = "", correct = 0, labelled = 0, n = 0;
-    for(const line of lines.slice(1)){
-      if(!line.trim()) continue;
-      const c = line.split(","); const lux = parseFloat(c[li]), db = parseFloat(c[si]);
-      if(isNaN(lux) || isNaN(db)) continue;
-      const r = predictTree([lux, db]); n++;
-      let acc = "";
-      if(oi >= 0 && (c[oi] === "0" || c[oi] === "1")){ labelled++; const y = parseInt(c[oi]); if((r.label === "Occupied") === (y === 1)) correct++; acc = y === 1 ? "Occupied" : "Empty"; }
-      rows += `<tr><td>${lux}</td><td>${db}</td><td><span class="pill ${r.label==="Occupied"?"occ":"emp"}">${r.label}</span></td><td>${(r.conf*100).toFixed(1)}%</td><td>${acc}</td></tr>`;
+(function(){
+  var inputCahaya = document.getElementById('cahaya');
+  var inputSuara = document.getElementById('suara');
+  var galat = document.getElementById('galat');
+  var hasil = document.getElementById('hasil');
+  var daftarRiwayat = document.getElementById('riwayat');
+
+  function klasifikasi(cahaya, suara){
+    // Aturan Decision Tree yang sudah dilatih (gini, max_depth 5).
+    if (suara <= 41.5){
+      if (cahaya <= 110.5){ return {kelas:'Kosong', alasan:'Suara ' + suara + ' dB masih di bawah 41,5 dB, dan cahaya ' + cahaya + ' Lux juga rendah, jadi ruangan dibaca kosong.'}; }
+      if (suara <= 36.85){ return {kelas:'Kosong', alasan:'Cahaya memang terang (' + cahaya + ' Lux), tapi suara hanya ' + suara + ' dB — terlalu sepi untuk ruangan yang terisi.'}; }
+      if (cahaya <= 130){ return {kelas:'Terisi', alasan:'Suara ' + suara + ' dB sudah di atas 36,85 dB dan cahaya ' + cahaya + ' Lux masih dalam batas ruangan yang dipakai.'}; }
+      if (cahaya <= 210){ return {kelas:'Kosong', alasan:'Cahaya sangat terang (' + cahaya + ' Lux) tapi suara hanya ' + suara + ' dB — kemungkinan ruangan kosong yang kebetulan terang.'}; }
+      return {kelas:'Terisi', alasan:'Suara ' + suara + ' dB dan cahaya ' + cahaya + ' Lux sama-sama tinggi, jadi ruangan dibaca terisi.'};
     }
-    box.innerHTML = `<p>${n} rows classified.${labelled ? ` Batch accuracy: <b>${(correct/labelled*100).toFixed(2)}%</b> (${correct}/${labelled} labelled rows).` : ""}</p>
-    <table><thead><tr><th>Light</th><th>Sound</th><th>Prediction</th><th>Confidence</th><th>Actual</th></tr></thead><tbody>${rows}</tbody></table>`;
-  };
-  reader.readAsText(f);
-}
-renderHist();
+    if (suara <= 46.35){
+      if (cahaya <= 66.5){ return {kelas:'Kosong', alasan:'Suara ' + suara + ' dB baru sedikit di atas 41,5 dB, sementara cahaya hanya ' + cahaya + ' Lux — belum cukup untuk dibilang terisi.'}; }
+      return {kelas:'Terisi', alasan:'Suara ' + suara + ' dB di atas 41,5 dB dan cahaya ' + cahaya + ' Lux cukup terang, jadi ruangan dibaca terisi.'};
+    }
+    return {kelas:'Terisi', alasan:'Suara ' + suara + ' dB sudah di atas 46,35 dB — pada titik ini model langsung memutuskan ruangan terisi.'};
+  }
+
+  function rekomendasi(kelas){
+    return kelas === 'Terisi'
+      ? 'Saran: ruangan sedang dipakai. Biarkan lampu menyala seperlunya dan pastikan ventilasinya cukup.'
+      : 'Saran: ruangan kosong. Matikan lampu dan AC supaya hemat listrik.';
+  }
+
+  function simpanRiwayat(cahaya, suara, kelas){
+    var data = JSON.parse(localStorage.getItem('roomguard-riwayat') || '[]');
+    data.unshift({waktu:new Date().toLocaleString('id-ID'), cahaya:cahaya, suara:suara, kelas:kelas});
+    localStorage.setItem('roomguard-riwayat', JSON.stringify(data.slice(0, 50)));
+    tampilkanRiwayat();
+  }
+
+  function tampilkanRiwayat(){
+    var data = JSON.parse(localStorage.getItem('roomguard-riwayat') || '[]');
+    if (!data.length){ daftarRiwayat.innerHTML = '<p class="kecil">Belum ada percobaan.</p>'; return; }
+    daftarRiwayat.innerHTML = data.map(function(item, i){
+      return '<div class="baris-riwayat"><span>' + item.waktu + ' — ' + item.cahaya + ' Lux, ' + item.suara + ' dB — <b>' + item.kelas + '</b></span>' +
+        '<button type="button" data-hapus="' + i + '">Hapus</button></div>';
+    }).join('');
+  }
+
+  function jalankan(){
+    var cahaya = parseFloat(inputCahaya.value);
+    var suara = parseFloat(inputSuara.value);
+    galat.style.display = 'none';
+    if (isNaN(cahaya) || isNaN(suara)){
+      galat.textContent = 'Isi dulu kedua angkanya.'; galat.style.display = 'block'; return;
+    }
+    if (cahaya < 0 || cahaya > 600 || suara < 25 || suara > 85){
+      galat.textContent = 'Cahaya harus 0–600 Lux dan suara 25–85 dB.'; galat.style.display = 'block'; return;
+    }
+    var out = klasifikasi(cahaya, suara);
+    hasil.className = 'hasil ' + (out.kelas === 'Terisi' ? 'terisi' : 'kosong');
+    hasil.style.display = 'block';
+    hasil.innerHTML = '<b>Ruangan ' + out.kelas + '</b><p class="alasan">' + out.alasan + '</p><p class="alasan">' + rekomendasi(out.kelas) + '</p>';
+    simpanRiwayat(cahaya, suara, out.kelas);
+  }
+
+  document.getElementById('tombol-klasifikasi').addEventListener('click', jalankan);
+  document.querySelectorAll('[data-cahaya]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      inputCahaya.value = btn.getAttribute('data-cahaya');
+      inputSuara.value = btn.getAttribute('data-suara');
+      jalankan();
+    });
+  });
+  daftarRiwayat.addEventListener('click', function(e){
+    var i = e.target.getAttribute('data-hapus');
+    if (i === null) return;
+    var data = JSON.parse(localStorage.getItem('roomguard-riwayat') || '[]');
+    data.splice(parseInt(i, 10), 1);
+    localStorage.setItem('roomguard-riwayat', JSON.stringify(data));
+    tampilkanRiwayat();
+  });
+  document.getElementById('tombol-bersihkan').addEventListener('click', function(){
+    if (!confirm('Bersihkan semua riwayat percobaan?')) return;
+    localStorage.removeItem('roomguard-riwayat');
+    tampilkanRiwayat();
+  });
+  tampilkanRiwayat();
+})();
 </script>
 </body>
 </html>
