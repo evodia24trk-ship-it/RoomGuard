@@ -203,4 +203,8 @@ def about():
     return render_template("about.html", metrics=METRICS)
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    # Debug dimatikan secara default: mode debug menampilkan PIN debugger
+    # dan me-restart server dua kali sehingga start-nya lambat.
+    # Nyalakan hanya bila perlu, dengan FLASK_DEBUG=1.
+    import os
+    app.run(host="127.0.0.1", port=5000, debug=os.environ.get("FLASK_DEBUG") == "1")

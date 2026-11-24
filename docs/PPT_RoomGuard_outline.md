@@ -49,6 +49,7 @@
 
 - Best params dari GridSearchCV: gini, max_depth 5, min_samples_leaf 10; CV accuracy 97,29%.
 - Kenapa pohon tidak dibuat lebih dalam: akurasi latih naik, tapi validasi tidak ikut naik.
+- [Sertakan screenshot: models/decision_tree.png — Visualisasi Decision Tree]
 - Poin bicara: tunjukkan gambar pohonnya dan bacakan satu jalur keputusan dari akar sampai daun.
 
 ## Slide 8 — Hasil Utama (Test, n = 300)
@@ -56,6 +57,7 @@
 - **Accuracy 95,33% | Precision 95,95% | Recall 94,67% | F1 95,30%**
 - Train 97,86%, validation 95,00% — selisih kecil, tidak overfitting.
 - Confusion matrix: [[144, 6], [8, 142]] — 286 benar, 14 salah.
+- [Sertakan screenshot: models/confusion_matrix.png — Confusion matrix data uji; dan docs/screenshots/colab-results.png — Hasil eksekusi notebook Colab]
 - Poin bicara: jangan hanya membacakan angka; jelaskan artinya — dari 300 ruangan, 286 ditebak dengan benar.
 
 ## Slide 9 — Analisis Kesalahan & Per Sumber Data
@@ -69,11 +71,13 @@
 
 - Flask + SQLite, frontend Bahasa Inggris, menu Dashboard / Predict / History / Dataset / Model / About.
 - Demo langsung: masukkan Lux dan dB, tampilkan hasil + rekomendasi hemat energi, lalu cek History.
+- [Sertakan screenshot: docs/screenshots/web-predict.png — Tampilan halaman prediksi web RoomGuard]
 - Poin bicara: siapkan 2 contoh input sebelum presentasi — satu yang jelas Terisi dan satu yang jelas Kosong — supaya demo tidak gagal di depan penguji.
 
 ## Slide 11 — Keterbatasan
 
-- Data privat dari satu ruangan dan satu ponsel; suara luar tidak bisa dibedakan; hanya 2 fitur; input web masih manual, belum real-time.
+- Data privat dari satu ruangan dan satu ponsel; suara luar tidak bisa dibedakan, sehingga Kosong privat paling sering salah dikenali.
+- Hanya 2 fitur; input web masih manual, belum real-time.
 - Poin bicara: sampaikan dengan tenang dan jujur — penguji lebih percaya pada kelompok yang tahu batas karyanya sendiri.
 
 ## Slide 12 — Kesimpulan, Saran & Penutup
