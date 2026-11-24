@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RoomGuard — Klasifikasi Keberadaan Orang di Ruangan</title>
+<title>RoomGuard — Room Occupancy Classification</title>
 <style>
   :root{
     --hijau:#1d5c3f; --hijau-tua:#123f2b; --krem:#f7f5f0; --kartu:#ffffff;
@@ -52,105 +52,105 @@
 <header>
   <div class="bungkus">
     <h1>RoomGuard</h1>
-    <p>Menentukan apakah sebuah ruangan sedang terisi atau kosong, dari dua sinyal sederhana di ponsel: intensitas cahaya (Lux) dan tingkat suara (dB). Modelnya Decision Tree, dilatih dari 2.000 baris data.</p>
-    <p class="kecil" style="color:#d8e4d8">Kelompok 12 — Evodia Maribet Kristina Manalu &amp; Hasbi · Workshop Machine Learning for IoT · <a href="https://github.com/evodia24trk-ship-it/RoomGuard">GitHub repo</a> · <a href="https://colab.research.google.com/github/evodia24trk-ship-it/RoomGuard/blob/main/notebooks/RoomGuard_UAS_Colab.ipynb">Buka di Colab</a></p>
+    <p>Deciding whether a room is occupied or empty, from two simple signals on a phone: light intensity (Lux) and sound level (dB). The model is a Decision Tree, trained on 2,000 rows of data.</p>
+    <p class="kecil" style="color:#d8e4d8">Group 12 — Evodia Maribet Kristina Manalu &amp; Hasbi · Machine Learning for IoT Workshop · <a href="https://github.com/evodia24trk-ship-it/RoomGuard">GitHub repo</a> · <a href="https://colab.research.google.com/github/evodia24trk-ship-it/RoomGuard/blob/main/notebooks/RoomGuard_UAS_Colab.ipynb">Open in Colab</a></p>
   </div>
 </header>
 
 <main>
   <section class="kartu">
-    <h2>Coba klasifikasi</h2>
-    <p>Masukkan angka cahaya dan suara, lalu tekan <b>Klasifikasi</b>. Hasilnya langsung muncul di bawah, beserta alasan singkat kenapa model memilih begitu.</p>
-    <label for="cahaya">Cahaya (Lux) — 0 sampai 600</label>
-    <input id="cahaya" type="number" min="0" max="600" step="1" placeholder="contoh: 180">
-    <label for="suara">Suara (dB) — 25 sampai 85</label>
-    <input id="suara" type="number" min="25" max="85" step="0.1" placeholder="contoh: 58">
+    <h2>Try the classifier</h2>
+    <p>Enter the light and sound values, then press <b>Classify</b>. The result appears right below, with a short reason why the model chose it.</p>
+    <label for="cahaya">Light (Lux) — 0 to 600</label>
+    <input id="cahaya" type="number" min="0" max="600" step="1" placeholder="e.g. 180">
+    <label for="suara">Sound (dB) — 25 to 85</label>
+    <input id="suara" type="number" min="25" max="85" step="0.1" placeholder="e.g. 58">
     <p class="galat" id="galat"></p>
     <div>
-      <button id="tombol-klasifikasi" type="button">Klasifikasi</button>
+      <button id="tombol-klasifikasi" type="button">Classify</button>
     </div>
     <div>
-      <button class="ringan" type="button" data-cahaya="180" data-suara="58">Terang &amp; ramai (180 / 58)</button>
-      <button class="ringan" type="button" data-cahaya="10" data-suara="36">Gelap &amp; sepi (10 / 36)</button>
-      <button class="ringan" type="button" data-cahaya="200" data-suara="38">Terang tapi sepi (200 / 38)</button>
-      <button class="ringan" type="button" data-cahaya="35" data-suara="62">Gelap tapi ramai (35 / 62)</button>
+      <button class="ringan" type="button" data-cahaya="180" data-suara="58">Bright &amp; noisy (180 / 58)</button>
+      <button class="ringan" type="button" data-cahaya="10" data-suara="36">Dark &amp; quiet (10 / 36)</button>
+      <button class="ringan" type="button" data-cahaya="200" data-suara="38">Bright but quiet (200 / 38)</button>
+      <button class="ringan" type="button" data-cahaya="35" data-suara="62">Dark but noisy (35 / 62)</button>
     </div>
     <div class="hasil" id="hasil"></div>
   </section>
 
   <section class="kartu">
-    <h2>Riwayat percobaan</h2>
-    <p class="kecil">Percobaan yang kamu lakukan di halaman ini tersimpan di browser kamu sendiri. Hapus satu per satu atau bersihkan semuanya kalau sudah tidak perlu.</p>
-    <div id="riwayat"><p class="kecil">Belum ada percobaan.</p></div>
-    <button class="ringan" id="tombol-bersihkan" type="button">Bersihkan riwayat</button>
+    <h2>Experiment history</h2>
+    <p class="kecil">The experiments you run on this page are stored in your own browser. Delete them one by one, or clear them all when you no longer need them.</p>
+    <div id="riwayat"><p class="kecil">No experiments yet.</p></div>
+    <button class="ringan" id="tombol-bersihkan" type="button">Clear history</button>
   </section>
 
   <section class="kartu">
-    <h2>Seberapa bagus modelnya</h2>
-    <p>Diuji pada 300 baris data yang tidak pernah dipakai saat latihan. Dari 300 itu, 286 ditebak dengan benar.</p>
+    <h2>How good is the model</h2>
+    <p>Tested on 300 rows of data never used during training. Of those 300, 286 were predicted correctly.</p>
     <div class="angka">
-      <div class="stat"><b>95,33%</b><span>Akurasi (data uji)</span></div>
-      <div class="stat"><b>95,95%</b><span>Presisi</span></div>
-      <div class="stat"><b>94,67%</b><span>Recall</span></div>
-      <div class="stat"><b>95,30%</b><span>F1-score</span></div>
+      <div class="stat"><b>95.33%</b><span>Accuracy (test data)</span></div>
+      <div class="stat"><b>95.95%</b><span>Precision</span></div>
+      <div class="stat"><b>94.67%</b><span>Recall</span></div>
+      <div class="stat"><b>95.30%</b><span>F1-score</span></div>
     </div>
-    <h3>Confusion matrix (data uji, n = 300)</h3>
+    <h3>Confusion matrix (test data, n = 300)</h3>
     <table>
-      <tr><th></th><th>Ditebak Kosong</th><th>Ditebak Terisi</th></tr>
-      <tr><td>Aslinya Kosong</td><td>144</td><td>6</td></tr>
-      <tr><td>Aslinya Terisi</td><td>8</td><td>142</td></tr>
+      <tr><th></th><th>Predicted Empty</th><th>Predicted Occupied</th></tr>
+      <tr><td>Actually Empty</td><td>144</td><td>6</td></tr>
+      <tr><td>Actually Occupied</td><td>8</td><td>142</td></tr>
     </table>
-    <p class="kecil">Jadi ada 6 ruangan kosong yang dikira terisi, dan 8 ruangan terisi yang dikira kosong. Kesalahan paling sering terjadi pada data private: ruangan kosong tapi terang, atau ruangan terisi tapi orangnya diam.</p>
-    <h3>Yang paling berpengaruh</h3>
-    <p>Suara 90,06% · Cahaya 9,94%. Aturan pertamanya sederhana: kalau suara di atas 46,35 dB, model langsung memutuskan ruangan terisi. Kalau suara di bawah 41,5 dB, cahaya yang jadi penentu.</p>
+    <p class="kecil">So 6 empty rooms were mistaken for occupied ones, and 8 occupied rooms were mistaken for empty ones. Mistakes happen most often on the private data: an empty room that is bright, or an occupied room where everyone is quiet.</p>
+    <h3>What matters most</h3>
+    <p>Sound 90.06% · Light 9.94%. The first rule is simple: if the sound is above 46.35 dB, the model decides the room is occupied right away. If the sound is below 41.5 dB, light is what decides.</p>
   </section>
 
   <section class="kartu">
-    <h2>Datanya dari mana</h2>
+    <h2>Where the data comes from</h2>
     <table>
-      <tr><th>Sumber</th><th>Baris</th><th>Terisi</th><th>Kosong</th></tr>
-      <tr><td>Publik — UCI Room Occupancy Estimation Dataset #864</td><td>1.500 (75%)</td><td>750</td><td>750</td></tr>
-      <tr><td>Private — rekaman Phyphox, tiap 30 detik</td><td>500 (25%)</td><td>250</td><td>250</td></tr>
-      <tr><td><b>Total</b></td><td><b>2.000</b></td><td><b>1.000</b></td><td><b>1.000</b></td></tr>
+      <tr><th>Source</th><th>Rows</th><th>Occupied</th><th>Empty</th></tr>
+      <tr><td>Public — UCI Room Occupancy Estimation Dataset #864</td><td>1,500 (75%)</td><td>750</td><td>750</td></tr>
+      <tr><td>Private — Phyphox recordings, every 30 seconds</td><td>500 (25%)</td><td>250</td><td>250</td></tr>
+      <tr><td><b>Total</b></td><td><b>2,000</b></td><td><b>1,000</b></td><td><b>1,000</b></td></tr>
     </table>
-    <p>Data dibagi 70% latih (1.400), 15% validasi (300), dan 15% uji (300). Label pada data private ditulis dari lembar observasi manual per 30 detik — ada orang atau tidak — bukan ditebak dari nilai sensornya. Data publik: <a href="https://archive.ics.uci.edu/dataset/864/room+occupancy+estimation">archive.ics.uci.edu/dataset/864</a>.</p>
-    <p class="kecil">Model: Decision Tree (gini, kedalaman maks 5, daun minimal 10). Akurasi validasi silang 5-fold: 97,29%. Satu hal yang perlu diakui: pada data uji private akurasinya 90,14%, lebih rendah dari publik 96,94% — data dari ponsel memang lebih berisik dan situasinya lebih beragam.</p>
+    <p>The data is split into 70% training (1,400), 15% validation (300), and 15% testing (300). Labels for the private data were written from a manual observation sheet every 30 seconds — whether someone was there or not — not guessed from the sensor values. Public data: <a href="https://archive.ics.uci.edu/dataset/864/room+occupancy+estimation">archive.ics.uci.edu/dataset/864</a>.</p>
+    <p class="kecil">Model: Decision Tree (gini, max depth 5, min samples per leaf 10). 5-fold cross-validation accuracy: 97.29%. One thing worth admitting: on the private test data the accuracy is 90.14%, lower than the public 96.94% — phone data is simply noisier and covers more varied situations.</p>
   </section>
 
   <section class="kartu">
-    <h2>Tambah Dataset</h2>
+    <h2>Add Dataset</h2>
     <p id="tambah-penghitung"></p>
-    <p class="kecil">Punya data pengukuran sendiri? Masukkan di sini. Data tambahan tersimpan di browser kamu, jadi tidak hilang saat halaman dimuat ulang.</p>
-    <label for="tambah-cahaya">Cahaya (Lux) — 0 sampai 600</label>
-    <input id="tambah-cahaya" type="number" min="0" max="600" step="1" placeholder="contoh: 150">
-    <label for="tambah-suara">Suara (dB) — 25 sampai 85</label>
-    <input id="tambah-suara" type="number" min="25" max="85" step="0.1" placeholder="contoh: 52">
+    <p class="kecil">Have your own measurements? Add them here. Added data is stored in your browser, so it stays even after you reload the page.</p>
+    <label for="tambah-cahaya">Light (Lux) — 0 to 600</label>
+    <input id="tambah-cahaya" type="number" min="0" max="600" step="1" placeholder="e.g. 150">
+    <label for="tambah-suara">Sound (dB) — 25 to 85</label>
+    <input id="tambah-suara" type="number" min="25" max="85" step="0.1" placeholder="e.g. 52">
     <label for="tambah-label">Label</label>
     <select id="tambah-label">
-      <option value="Terisi">Terisi</option>
-      <option value="Kosong">Kosong</option>
+      <option value="Terisi">Occupied</option>
+      <option value="Kosong">Empty</option>
     </select>
     <p class="galat" id="tambah-galat"></p>
     <div>
-      <button id="tombol-tambah" type="button">Tambah ke dataset</button>
+      <button id="tombol-tambah" type="button">Add to dataset</button>
     </div>
-    <h3>Atau unggah file CSV</h3>
-    <p class="kecil">File CSV dengan kolom Light_Lux, Sound_dB, Occupancy. Nilai Occupancy bisa 1/0 atau Terisi/Kosong.</p>
+    <h3>Or upload a CSV file</h3>
+    <p class="kecil">A CSV file with the columns Light_Lux, Sound_dB, Occupancy. Occupancy can be 1/0 or Occupied/Empty.</p>
     <input id="tambah-unggah" type="file" accept=".csv">
     <p class="kecil" id="tambah-status"></p>
-    <h3>Data tambahan saya</h3>
-    <div id="tambah-tabel"><p class="kecil">Belum ada data tambahan.</p></div>
+    <h3>My added data</h3>
+    <div id="tambah-tabel"><p class="kecil">No added data yet.</p></div>
     <div>
-      <button class="ringan" id="tombol-unduh-dataset" type="button">Unduh CSV</button>
-      <button class="ringan" id="tombol-bersihkan-dataset" type="button">Bersihkan data tambahan</button>
+      <button class="ringan" id="tombol-unduh-dataset" type="button">Download CSV</button>
+      <button class="ringan" id="tombol-bersihkan-dataset" type="button">Clear added data</button>
     </div>
-    <p class="kecil">Catatan jujur: data tambahan ini tersimpan di browser saja dan belum melatih ulang model — untuk melatih ulang model dengan data baru, gunakan notebook Colab di repo.</p>
+    <p class="kecil">An honest note: this added data is only stored in your browser and has not retrained the model — to retrain the model with new data, use the Colab notebook in the repo.</p>
   </section>
 </main>
 
 <footer>
   <div class="bungkus">
-    RoomGuard · Kelompok 12 · November 2026
+    RoomGuard · Group 12 · November 2026
   </div>
 </footer>
 
@@ -163,40 +163,42 @@
   var daftarRiwayat = document.getElementById('riwayat');
 
   function klasifikasi(cahaya, suara){
-    // Aturan Decision Tree yang sudah dilatih (gini, max_depth 5).
+    // Trained Decision Tree rules (gini, max_depth 5).
     if (suara <= 41.5){
-      if (cahaya <= 110.5){ return {kelas:'Kosong', alasan:'Suara ' + suara + ' dB masih di bawah 41,5 dB, dan cahaya ' + cahaya + ' Lux juga rendah, jadi ruangan dibaca kosong.'}; }
-      if (suara <= 36.85){ return {kelas:'Kosong', alasan:'Cahaya memang terang (' + cahaya + ' Lux), tapi suara hanya ' + suara + ' dB — terlalu sepi untuk ruangan yang terisi.'}; }
-      if (cahaya <= 130){ return {kelas:'Terisi', alasan:'Suara ' + suara + ' dB sudah di atas 36,85 dB dan cahaya ' + cahaya + ' Lux masih dalam batas ruangan yang dipakai.'}; }
-      if (cahaya <= 210){ return {kelas:'Kosong', alasan:'Cahaya sangat terang (' + cahaya + ' Lux) tapi suara hanya ' + suara + ' dB — kemungkinan ruangan kosong yang kebetulan terang.'}; }
-      return {kelas:'Terisi', alasan:'Suara ' + suara + ' dB dan cahaya ' + cahaya + ' Lux sama-sama tinggi, jadi ruangan dibaca terisi.'};
+      if (cahaya <= 110.5){ return {kelas:'Kosong', alasan:'Sound is ' + suara + ' dB, still below 41.5 dB, and light is only ' + cahaya + ' Lux, so the room reads as empty.'}; }
+      if (suara <= 36.85){ return {kelas:'Kosong', alasan:'The light is bright (' + cahaya + ' Lux), but the sound is only ' + suara + ' dB — too quiet for an occupied room.'}; }
+      if (cahaya <= 130){ return {kelas:'Terisi', alasan:'Sound is ' + suara + ' dB, already above 36.85 dB, and light at ' + cahaya + ' Lux is still within the range of a room in use.'}; }
+      if (cahaya <= 210){ return {kelas:'Kosong', alasan:'The light is very bright (' + cahaya + ' Lux) but the sound is only ' + suara + ' dB — most likely an empty room that just happens to be bright.'}; }
+      return {kelas:'Terisi', alasan:'Sound at ' + suara + ' dB and light at ' + cahaya + ' Lux are both high, so the room reads as occupied.'};
     }
     if (suara <= 46.35){
-      if (cahaya <= 66.5){ return {kelas:'Kosong', alasan:'Suara ' + suara + ' dB baru sedikit di atas 41,5 dB, sementara cahaya hanya ' + cahaya + ' Lux — belum cukup untuk dibilang terisi.'}; }
-      return {kelas:'Terisi', alasan:'Suara ' + suara + ' dB di atas 41,5 dB dan cahaya ' + cahaya + ' Lux cukup terang, jadi ruangan dibaca terisi.'};
+      if (cahaya <= 66.5){ return {kelas:'Kosong', alasan:'Sound at ' + suara + ' dB is only just above 41.5 dB, while light is only ' + cahaya + ' Lux — not enough to call it occupied.'}; }
+      return {kelas:'Terisi', alasan:'Sound at ' + suara + ' dB is above 41.5 dB and light at ' + cahaya + ' Lux is bright enough, so the room reads as occupied.'};
     }
-    return {kelas:'Terisi', alasan:'Suara ' + suara + ' dB sudah di atas 46,35 dB — pada titik ini model langsung memutuskan ruangan terisi.'};
+    return {kelas:'Terisi', alasan:'Sound at ' + suara + ' dB is above 46.35 dB — at this point the model decides the room is occupied right away.'};
   }
+
+  function terjemahKelas(kelas){ return kelas === 'Terisi' ? 'Occupied' : 'Empty'; }
 
   function rekomendasi(kelas){
     return kelas === 'Terisi'
-      ? 'Saran: ruangan sedang dipakai. Biarkan lampu menyala seperlunya dan pastikan ventilasinya cukup.'
-      : 'Saran: ruangan kosong. Matikan lampu dan AC supaya hemat listrik.';
+      ? 'Tip: the room is in use. Keep the lights on as needed and make sure there is enough ventilation.'
+      : 'Tip: the room is empty. Switch off the lights and air conditioning to save electricity.';
   }
 
   function simpanRiwayat(cahaya, suara, kelas){
     var data = JSON.parse(localStorage.getItem('roomguard-riwayat') || '[]');
-    data.unshift({waktu:new Date().toLocaleString('id-ID'), cahaya:cahaya, suara:suara, kelas:kelas});
+    data.unshift({waktu:new Date().toLocaleString('en-US'), cahaya:cahaya, suara:suara, kelas:kelas});
     localStorage.setItem('roomguard-riwayat', JSON.stringify(data.slice(0, 50)));
   tampilkanRiwayat();
   }
 
   function tampilkanRiwayat(){
     var data = JSON.parse(localStorage.getItem('roomguard-riwayat') || '[]');
-    if (!data.length){ daftarRiwayat.innerHTML = '<p class="kecil">Belum ada percobaan.</p>'; return; }
+    if (!data.length){ daftarRiwayat.innerHTML = '<p class="kecil">No experiments yet.</p>'; return; }
     daftarRiwayat.innerHTML = data.map(function(item, i){
-      return '<div class="baris-riwayat"><span>' + item.waktu + ' — ' + item.cahaya + ' Lux, ' + item.suara + ' dB — <b>' + item.kelas + '</b></span>' +
-        '<button type="button" data-hapus="' + i + '">Hapus</button></div>';
+      return '<div class="baris-riwayat"><span>' + item.waktu + ' — ' + item.cahaya + ' Lux, ' + item.suara + ' dB — <b>' + terjemahKelas(item.kelas) + '</b></span>' +
+        '<button type="button" data-hapus="' + i + '">Delete</button></div>';
     }).join('');
   }
 
@@ -205,15 +207,15 @@
     var suara = parseFloat(inputSuara.value);
     galat.style.display = 'none';
     if (isNaN(cahaya) || isNaN(suara)){
-      galat.textContent = 'Isi dulu kedua angkanya.'; galat.style.display = 'block'; return;
+      galat.textContent = 'Please enter both numbers first.'; galat.style.display = 'block'; return;
     }
     if (cahaya < 0 || cahaya > 600 || suara < 25 || suara > 85){
-      galat.textContent = 'Cahaya harus 0–600 Lux dan suara 25–85 dB.'; galat.style.display = 'block'; return;
+      galat.textContent = 'Light must be 0–600 Lux and sound 25–85 dB.'; galat.style.display = 'block'; return;
     }
     var out = klasifikasi(cahaya, suara);
     hasil.className = 'hasil ' + (out.kelas === 'Terisi' ? 'terisi' : 'kosong');
     hasil.style.display = 'block';
-    hasil.innerHTML = '<b>Ruangan ' + out.kelas + '</b><p class="alasan">' + out.alasan + '</p><p class="alasan">' + rekomendasi(out.kelas) + '</p>';
+    hasil.innerHTML = '<b>Room ' + terjemahKelas(out.kelas) + '</b><p class="alasan">' + out.alasan + '</p><p class="alasan">' + rekomendasi(out.kelas) + '</p>';
     simpanRiwayat(cahaya, suara, out.kelas);
   }
 
@@ -234,7 +236,7 @@
     tampilkanRiwayat();
   });
   document.getElementById('tombol-bersihkan').addEventListener('click', function(){
-    if (!confirm('Bersihkan semua riwayat percobaan?')) return;
+    if (!confirm('Clear all experiment history?')) return;
     localStorage.removeItem('roomguard-riwayat');
     tampilkanRiwayat();
   });
@@ -253,11 +255,11 @@
   function tampilkanDataset(){
     var data = muatDataset();
     var terisi = data.filter(function(d){ return d.label === 'Terisi'; }).length;
-    penghitung.textContent = 'Dataset awal: 2.000 baris (1.000 Terisi / 1.000 Kosong). Data tambahan: ' + data.length + ' baris (' + terisi + ' Terisi / ' + (data.length - terisi) + ' Kosong). Total: ' + (2000 + data.length) + ' baris.';
-    if (!data.length){ tabelTambah.innerHTML = '<p class="kecil">Belum ada data tambahan.</p>'; return; }
-    var html = '<table><tr><th>No</th><th>Cahaya (Lux)</th><th>Suara (dB)</th><th>Label</th><th></th></tr>';
+    penghitung.textContent = 'Initial dataset: 2,000 rows (1,000 Occupied / 1,000 Empty). Added data: ' + data.length + ' row' + (data.length === 1 ? '' : 's') + ' (' + terisi + ' Occupied / ' + (data.length - terisi) + ' Empty). Total: ' + (2000 + data.length).toLocaleString('en-US') + ' rows.';
+    if (!data.length){ tabelTambah.innerHTML = '<p class="kecil">No added data yet.</p>'; return; }
+    var html = '<table><tr><th>No</th><th>Light (Lux)</th><th>Sound (dB)</th><th>Label</th><th></th></tr>';
     data.forEach(function(d, i){
-      html += '<tr><td>' + (i + 1) + '</td><td>' + d.cahaya + '</td><td>' + d.suara + '</td><td>' + d.label + '</td><td><button type="button" class="ringan" data-hapus-dataset="' + i + '">Hapus</button></td></tr>';
+      html += '<tr><td>' + (i + 1) + '</td><td>' + d.cahaya + '</td><td>' + d.suara + '</td><td>' + terjemahKelas(d.label) + '</td><td><button type="button" class="ringan" data-hapus-dataset="' + i + '">Delete</button></td></tr>';
     });
     tabelTambah.innerHTML = html + '</table>';
   }
@@ -268,10 +270,10 @@
     var label = inputTambahLabel.value;
     galatTambah.style.display = 'none';
     if (isNaN(cahaya) || isNaN(suara)){
-      galatTambah.textContent = 'Isi dulu angka cahaya dan suaranya.'; galatTambah.style.display = 'block'; return;
+      galatTambah.textContent = 'Please enter the light and sound values first.'; galatTambah.style.display = 'block'; return;
     }
     if (cahaya < 0 || cahaya > 600 || suara < 25 || suara > 85){
-      galatTambah.textContent = 'Cahaya harus 0–600 Lux dan suara 25–85 dB.'; galatTambah.style.display = 'block'; return;
+      galatTambah.textContent = 'Light must be 0–600 Lux and sound 25–85 dB.'; galatTambah.style.display = 'block'; return;
     }
     var data = muatDataset();
     data.push({cahaya:cahaya, suara:suara, label:label});
@@ -290,14 +292,14 @@
   });
 
   document.getElementById('tombol-bersihkan-dataset').addEventListener('click', function(){
-    if (!confirm('Bersihkan semua data tambahan?')) return;
+    if (!confirm('Clear all added data?')) return;
     localStorage.removeItem(KUNCI_DATASET);
     tampilkanDataset();
   });
 
   document.getElementById('tombol-unduh-dataset').addEventListener('click', function(){
     var data = muatDataset();
-    if (!data.length){ alert('Belum ada data tambahan untuk diunduh.'); return; }
+    if (!data.length){ alert('There is no added data to download yet.'); return; }
     var csv = 'Light_Lux,Sound_dB,Occupancy\n' + data.map(function(d){ return d.cahaya + ',' + d.suara + ',' + (d.label === 'Terisi' ? 1 : 0); }).join('\n');
     var a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
@@ -319,13 +321,13 @@
         var kolom = b.split(',');
         var cahaya = parseFloat(kolom[0]); var suara = parseFloat(kolom[1]);
         var labelRaw = (kolom[2] || '').trim().toLowerCase();
-        var label = (labelRaw === '1' || labelRaw === 'terisi') ? 'Terisi' : (labelRaw === '0' || labelRaw === 'kosong') ? 'Kosong' : null;
+        var label = (labelRaw === '1' || labelRaw === 'terisi' || labelRaw === 'occupied') ? 'Terisi' : (labelRaw === '0' || labelRaw === 'kosong' || labelRaw === 'empty') ? 'Kosong' : null;
         if (label === null || isNaN(cahaya) || isNaN(suara) || cahaya < 0 || cahaya > 600 || suara < 25 || suara > 85){ lewati++; return; }
         data.push({cahaya:cahaya, suara:suara, label:label}); ok++;
       });
       simpanDataset(data);
       tampilkanDataset();
-      document.getElementById('tambah-status').textContent = ok + ' baris berhasil ditambahkan, ' + lewati + ' baris dilewati.';
+      document.getElementById('tambah-status').textContent = ok + ' row' + (ok === 1 ? '' : 's') + ' added successfully, ' + lewati + ' row' + (lewati === 1 ? '' : 's') + ' skipped.';
       e.target.value = '';
     };
     reader.readAsText(file);
