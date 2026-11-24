@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block content %}
+<h1>About RoomGuard</h1>
+<p><strong>RoomGuard</strong> is a web system that classifies room occupancy into two classes —
+   <strong>Occupied</strong> and <strong>Empty</strong> — from ambient sensor signals on a smartphone:
+   light intensity (Lux) and sound level (dB).</p>
+
+<h2>Why it matters</h2>
+<p>Knowing whether a room is actually in use helps save energy: lights and air conditioning
+   left running in an empty room are wasted. A phone placed in the room is a cheap sensor —
+   no dedicated hardware is needed.</p>
+
+<h2>Data</h2>
+<ul>
+  <li><strong>Public (75%, 1,500 rows):</strong> UCI Room Occupancy Estimation dataset (dataset 864),
+      <a href="https://archive.ics.uci.edu/dataset/864/room+occupancy+estimation" target="_blank" rel="noopener">archive.ics.uci.edu/dataset/864</a>.</li>
+  <li><strong>Private (25%, 500 rows):</strong> light and microphone recordings from group members'
+      smartphones using the Phyphox app, placed inside the room with a 30-second logging interval
+      and manual labels.</li>
+  <li><strong>Balance:</strong> 1,000 Occupied / 1,000 Empty. Split 70/15/15 (train 1,400 / validation 300 / test 300).</li>
+</ul>
+
+<h2>Method</h2>
+<p>A Decision Tree (gini, max_depth=5, min_samples_leaf=10) was trained on the two features
+   Light_Lux and Sound_dB. It reached 97.29% cross-validation accuracy and 95.33% accuracy on
+   the held-out test set. Sound level dominates the decision (90.06% feature importance);
+   light contributes the remaining 9.94%.</p>
+
+<h2>Limitations</h2>
+<p>The model can be fooled when the room is quiet but occupied (for example, someone reading
+   silently in dim light) or noisy but empty (for example, sound leaking in from a corridor).
+   Labels in the private set were assigned manually, so they carry some subjectivity.</p>
+
+<h2>Team</h2>
+<p>Kelompok 12 (Evodia, Hasbi) — Workshop Machine Learning for IoT, Final Project (UAS).</p>
+{% endblock %}

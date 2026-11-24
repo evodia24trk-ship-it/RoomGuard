@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Model{% endblock %}
+{% block content %}
+<h1>Model — Decision Tree</h1>
+<p>Decision Tree classifier: criterion <code>gini</code>, <code>max_depth=5</code>,
+   <code>min_samples_leaf=10</code>. Split 70/15/15 (train 1,400 / validation 300 / test 300).</p>
+
+<section class="cards">
+  <div class="card"><div class="stat">{{ (metrics.cv_accuracy * 100) | round(2) }}%</div><div class="label">CV Accuracy (5-fold)</div></div>
+  <div class="card"><div class="stat">{{ (metrics.test.accuracy * 100) | round(2) }}%</div><div class="label">Test Accuracy</div></div>
+  <div class="card"><div class="stat">{{ (metrics.test.precision * 100) | round(2) }}%</div><div class="label">Test Precision</div></div>
+  <div class="card"><div class="stat">{{ (metrics.test.recall * 100) | round(2) }}%</div><div class="label">Test Recall</div></div>
+  <div class="card"><div class="stat">{{ (metrics.test.f1 * 100) | round(2) }}%</div><div class="label">Test F1-Score</div></div>
+</section>
+
+<h2>Confusion Matrix (test set, n = 300)</h2>
+<table class="cm">
+  <thead><tr><th></th><th>Predicted Empty</th><th>Predicted Occupied</th></tr></thead>
+  <tbody>
+    <tr><th>Actual Empty</th><td class="cm-tn">{{ cm[0][0] }} (TN)</td><td class="cm-fp">{{ cm[0][1] }} (FP)</td></tr>
+    <tr><th>Actual Occupied</th><td class="cm-fn">{{ cm[1][0] }} (FN)</td><td class="cm-tp">{{ cm[1][1] }} (TP)</td></tr>
+  </tbody>
+</table>
+<p>144 of 150 empty rooms and 142 of 150 occupied rooms were classified correctly.</p>
+
+<h2>Feature Importance</h2>
+<ul>
+  <li><strong>Sound_dB — {{ (metrics.feature_importance.Sound_dB * 100) | round(2) }}%</strong>: sound level is by far the strongest signal; a quiet room is usually empty.</li>
+  <li><strong>Light_Lux — {{ (metrics.feature_importance.Light_Lux * 100) | round(2) }}%</strong>: light helps, especially in low-light cases where sound decides.</li>
+</ul>
+
+<h2>Decision Rules (learned tree)</h2>
+<pre class="rules">{{ rules }}</pre>
+{% endblock %}

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}RoomGuard{% endblock %} — RoomGuard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="brand" href="{{ url_for('index') }}">🏠 RoomGuard</a>
+    <nav>
+      <a href="{{ url_for('index') }}" class="{% if request.path=='/' %}active{% endif %}">Home</a>
+      <a href="{{ url_for('predict') }}" class="{% if request.path=='/predict' %}active{% endif %}">Predict</a>
+      <a href="{{ url_for('history') }}" class="{% if request.path.startswith('/history') %}active{% endif %}">History</a>
+      <a href="{{ url_for('dataset') }}" class="{% if request.path=='/dataset' %}active{% endif %}">Dataset</a>
+      <a href="{{ url_for('model_page') }}" class="{% if request.path=='/model' %}active{% endif %}">Model</a>
+      <a href="{{ url_for('about') }}" class="{% if request.path=='/about' %}active{% endif %}">About</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="footer">
+  <div class="container">
+    RoomGuard — Room occupancy classification with a Decision Tree on smartphone ambient sensors (Light &amp; Sound).
+    Dataset: UCI Room Occupancy Estimation (864) + Phyphox private recordings.
+  </div>
+</footer>
+</body>
+</html>

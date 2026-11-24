@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+app/roomguard.db
+app/__pycache__/
+.DS_Store

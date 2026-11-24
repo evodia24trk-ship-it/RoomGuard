@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Dataset{% endblock %}
+{% block content %}
+<h1>Dataset — 2,000 Rows</h1>
+<p>Combined dataset: <strong>{{ stats.public }} public</strong> rows from the UCI Room Occupancy
+   Estimation dataset (dataset 864) and <strong>{{ stats.private }} private</strong> rows recorded
+   with Phyphox on group members' smartphones (30-second interval, manual labels).</p>
+<section class="cards">
+  <div class="card"><div class="stat">{{ stats.total }}</div><div class="label">Total rows</div></div>
+  <div class="card"><div class="stat">{{ stats.occupied }}</div><div class="label">Occupied (Terisi)</div></div>
+  <div class="card"><div class="stat">{{ stats.empty }}</div><div class="label">Empty (Kosong)</div></div>
+  <div class="card"><div class="stat">{{ stats.public }} / {{ stats.private }}</div><div class="label">Public / Private</div></div>
+  <div class="card"><div class="stat">{{ stats.light_mean }} Lux</div><div class="label">Mean light (range {{ stats.light_min }}–{{ stats.light_max }})</div></div>
+  <div class="card"><div class="stat">{{ stats.sound_mean }} dB</div><div class="label">Mean sound (range {{ stats.sound_min }}–{{ stats.sound_max }})</div></div>
+</section>
+<h2>First 50 rows</h2>
+<div class="table-scroll">
+<table>
+  <thead><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>{% for c in columns %}<td>{{ r[c] }}</td>{% endfor %}</tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p>Public source: <a href="https://archive.ics.uci.edu/dataset/864/room+occupancy+estimation" target="_blank" rel="noopener">UCI Machine Learning Repository — Room Occupancy Estimation (864)</a></p>
+{% endblock %}

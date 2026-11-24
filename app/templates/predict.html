@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Predict{% endblock %}
+{% block content %}
+<h1>Predict Room Occupancy</h1>
+<p>Enter the sensor readings from the smartphone in the room. Light must be between
+   <strong>0–600 Lux</strong> and sound between <strong>25–85 dB</strong>.</p>
+
+<form method="post" action="{{ url_for('predict') }}" id="predict-form" class="form-card">
+  <label for="light">Light intensity (Lux)</label>
+  <input type="number" id="light" name="light" min="0" max="600" step="any" required
+         placeholder="e.g. 180" value="{{ request.form.light or '' }}">
+  <label for="sound">Sound level (dB)</label>
+  <input type="number" id="sound" name="sound" min="25" max="85" step="any" required
+         placeholder="e.g. 58" value="{{ request.form.sound or '' }}">
+  <label for="note">Note (optional)</label>
+  <input type="text" id="note" name="note" maxlength="200" placeholder="e.g. Classroom A, morning session">
+  <p class="error" id="form-error" hidden></p>
+  <button type="submit" class="btn btn-primary">Predict</button>
+</form>
+
+<section>
+  <h2>Quick examples</h2>
+  <div class="examples">
+    <button class="btn btn-example" data-light="180" data-sound="58">180 Lux · 58 dB — bright &amp; noisy</button>
+    <button class="btn btn-example" data-light="10" data-sound="36">10 Lux · 36 dB — dark &amp; quiet</button>
+    <button class="btn btn-example" data-light="35" data-sound="62">35 Lux · 62 dB — low light, loud</button>
+  </div>
+  <p class="hint">Click an example to fill in the form, then press Predict.</p>
+</section>
+
+{% if result %}
+<section class="result result-{{ result.label|lower }}">
+  <h2>Result: <span class="badge badge-{{ result.label|lower }}">{{ result.label }}</span></h2>
+  <p>Light: <strong>{{ result.light }} Lux</strong> · Sound: <strong>{{ result.sound }} dB</strong></p>
+  <p>Model confidence: <strong>{{ result.probability_pct }}%</strong></p>
+  <p class="recommendation">💡 <strong>Recommendation:</strong> {{ result.recommendation }}</p>
+  <p><a href="{{ url_for('history') }}">See it in History →</a></p>
+</section>
+{% endif %}
+
+<script>
+const form = document.getElementById('predict-form');
+const err = document.getElementById('form-error');
+form.addEventListener('submit', (e) => {
+  const light = parseFloat(document.getElementById('light').value);
+  const sound = parseFloat(document.getElementById('sound').value);
+  let msg = '';
+  if (isNaN(light) || light < 0 || light > 600) msg = 'Light must be a number between 0 and 600 Lux.';
+  else if (isNaN(sound) || sound < 25 || sound > 85) msg = 'Sound must be a number between 25 and 85 dB.';
+  if (msg) { e.preventDefault(); err.textContent = msg; err.hidden = false; }
+});
+document.querySelectorAll('.btn-example').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('light').value = btn.dataset.light;
+    document.getElementById('sound').value = btn.dataset.sound;
+    err.hidden = true;
+    document.getElementById('light').focus();
+  });
+});
+</script>
+{% endblock %}

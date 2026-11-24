@@ -1,0 +1,53 @@
+{
+  "train": {
+    "n": 1400,
+    "accuracy": 0.9786,
+    "precision": 0.9813,
+    "recall": 0.9757,
+    "f1": 0.9785
+  },
+  "validation": {
+    "n": 300,
+    "accuracy": 0.95,
+    "precision": 0.9655,
+    "recall": 0.9333,
+    "f1": 0.9492
+  },
+  "test": {
+    "n": 300,
+    "accuracy": 0.9533,
+    "precision": 0.9595,
+    "recall": 0.9467,
+    "f1": 0.953
+  },
+  "best_params": {
+    "criterion": "gini",
+    "max_depth": 5,
+    "min_samples_leaf": 10
+  },
+  "cv_accuracy": 0.9729,
+  "feature_importance": {
+    "Light_Lux": 0.0994,
+    "Sound_dB": 0.9006
+  },
+  "confusion_matrix_test": [
+    [
+      144,
+      6
+    ],
+    [
+      8,
+      142
+    ]
+  ],
+  "split": {
+    "train": 1400,
+    "validation": 300,
+    "test": 300
+  },
+  "dataset": {
+    "total": 2000,
+    "public": 1500,
+    "private": 500
+  }
+}

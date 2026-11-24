@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block content %}
+<h1>Prediction History</h1>
+<p>Every prediction is stored in SQLite with its timestamp, sensor values, result,
+   confidence and note. You can correct a label or note, or delete a record.</p>
+{% if rows %}
+<table>
+  <thead><tr><th>#</th><th>Time</th><th>Light (Lux)</th><th>Sound (dB)</th><th>Result</th><th>Confidence</th><th>Note</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>{{ r.id }}</td><td>{{ r.timestamp }}</td><td>{{ r.light_lux }}</td><td>{{ r.sound_db }}</td>
+      <td><span class="badge badge-{{ r.result|lower }}">{{ r.result }}</span></td>
+      <td>{{ (r.probability * 100) | round(1) }}%</td>
+      <td>{{ r.note or '—' }}</td>
+      <td class="actions">
+        <form method="post" action="{{ url_for('history_edit', pid=r.id) }}" class="inline-form">
+          <select name="result" aria-label="Label">
+            <option value="Occupied" {% if r.result=='Occupied' %}selected{% endif %}>Occupied</option>
+            <option value="Empty" {% if r.result=='Empty' %}selected{% endif %}>Empty</option>
+          </select>
+          <input type="text" name="note" value="{{ r.note or '' }}" maxlength="200" placeholder="Note" aria-label="Note">
+          <button type="submit" class="btn btn-small">Update</button>
+        </form>
+        <form method="post" action="{{ url_for('history_delete', pid=r.id) }}" class="inline-form"
+              onsubmit="return confirm('Delete record #{{ r.id }}?');">
+          <button type="submit" class="btn btn-small btn-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No predictions yet. <a href="{{ url_for('predict') }}">Make your first prediction →</a></p>
+{% endif %}
+{% endblock %}
