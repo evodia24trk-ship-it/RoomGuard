@@ -23,7 +23,7 @@
   p{margin:8px 0}
   .kecil{color:var(--abu);font-size:13px}
   label{display:block;font-size:13px;color:var(--abu);margin:14px 0 4px}
-  input{width:100%;padding:11px 12px;border:1px solid #c9c4b8;border-radius:8px;font-size:16px;font-family:inherit;background:#fff}
+  input,select{width:100%;padding:11px 12px;border:1px solid #c9c4b8;border-radius:8px;font-size:16px;font-family:inherit;background:#fff}
   input:focus{outline:2px solid var(--hijau);border-color:var(--hijau)}
   button{background:var(--hijau);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:15px;font-family:inherit;cursor:pointer;margin:14px 6px 0 0}
   button:hover{background:var(--hijau-tua)}
@@ -118,8 +118,33 @@
   </section>
 
   <section class="kartu">
-    <h2>Catatan</h2>
-    <p>Halaman ini versi demo statisnya. Versi lengkapnya dibuat dengan Flask dan SQLite, ada di folder <code>app/</code> pada repo di atas — di sana riwayat tersimpan di database dan bisa diubah maupun dihapus. Kalau kamu dosen atau penguji dan ingin melihat kodenya, semua ada di repo yang sama: dataset, notebook Colab, laporan, dan logbook.</p>
+    <h2>Tambah Dataset</h2>
+    <p id="tambah-penghitung"></p>
+    <p class="kecil">Punya data pengukuran sendiri? Masukkan di sini. Data tambahan tersimpan di browser kamu, jadi tidak hilang saat halaman dimuat ulang.</p>
+    <label for="tambah-cahaya">Cahaya (Lux) — 0 sampai 600</label>
+    <input id="tambah-cahaya" type="number" min="0" max="600" step="1" placeholder="contoh: 150">
+    <label for="tambah-suara">Suara (dB) — 25 sampai 85</label>
+    <input id="tambah-suara" type="number" min="25" max="85" step="0.1" placeholder="contoh: 52">
+    <label for="tambah-label">Label</label>
+    <select id="tambah-label">
+      <option value="Terisi">Terisi</option>
+      <option value="Kosong">Kosong</option>
+    </select>
+    <p class="galat" id="tambah-galat"></p>
+    <div>
+      <button id="tombol-tambah" type="button">Tambah ke dataset</button>
+    </div>
+    <h3>Atau unggah file CSV</h3>
+    <p class="kecil">File CSV dengan kolom Light_Lux, Sound_dB, Occupancy. Nilai Occupancy bisa 1/0 atau Terisi/Kosong.</p>
+    <input id="tambah-unggah" type="file" accept=".csv">
+    <p class="kecil" id="tambah-status"></p>
+    <h3>Data tambahan saya</h3>
+    <div id="tambah-tabel"><p class="kecil">Belum ada data tambahan.</p></div>
+    <div>
+      <button class="ringan" id="tombol-unduh-dataset" type="button">Unduh CSV</button>
+      <button class="ringan" id="tombol-bersihkan-dataset" type="button">Bersihkan data tambahan</button>
+    </div>
+    <p class="kecil">Catatan jujur: data tambahan ini tersimpan di browser saja dan belum melatih ulang model — untuk melatih ulang model dengan data baru, gunakan notebook Colab di repo.</p>
   </section>
 </main>
 
@@ -163,7 +188,7 @@
     var data = JSON.parse(localStorage.getItem('roomguard-riwayat') || '[]');
     data.unshift({waktu:new Date().toLocaleString('id-ID'), cahaya:cahaya, suara:suara, kelas:kelas});
     localStorage.setItem('roomguard-riwayat', JSON.stringify(data.slice(0, 50)));
-    tampilkanRiwayat();
+  tampilkanRiwayat();
   }
 
   function tampilkanRiwayat(){
@@ -213,7 +238,101 @@
     localStorage.removeItem('roomguard-riwayat');
     tampilkanRiwayat();
   });
+    // --- Tambah Dataset ---
+  var KUNCI_DATASET = 'roomguard_dataset_tambahan_v1';
+  var inputTambahCahaya = document.getElementById('tambah-cahaya');
+  var inputTambahSuara = document.getElementById('tambah-suara');
+  var inputTambahLabel = document.getElementById('tambah-label');
+  var galatTambah = document.getElementById('tambah-galat');
+  var penghitung = document.getElementById('tambah-penghitung');
+  var tabelTambah = document.getElementById('tambah-tabel');
+
+  function muatDataset(){ return JSON.parse(localStorage.getItem(KUNCI_DATASET) || '[]'); }
+  function simpanDataset(data){ localStorage.setItem(KUNCI_DATASET, JSON.stringify(data)); }
+
+  function tampilkanDataset(){
+    var data = muatDataset();
+    var terisi = data.filter(function(d){ return d.label === 'Terisi'; }).length;
+    penghitung.textContent = 'Dataset awal: 2.000 baris (1.000 Terisi / 1.000 Kosong). Data tambahan: ' + data.length + ' baris (' + terisi + ' Terisi / ' + (data.length - terisi) + ' Kosong). Total: ' + (2000 + data.length) + ' baris.';
+    if (!data.length){ tabelTambah.innerHTML = '<p class="kecil">Belum ada data tambahan.</p>'; return; }
+    var html = '<table><tr><th>No</th><th>Cahaya (Lux)</th><th>Suara (dB)</th><th>Label</th><th></th></tr>';
+    data.forEach(function(d, i){
+      html += '<tr><td>' + (i + 1) + '</td><td>' + d.cahaya + '</td><td>' + d.suara + '</td><td>' + d.label + '</td><td><button type="button" class="ringan" data-hapus-dataset="' + i + '">Hapus</button></td></tr>';
+    });
+    tabelTambah.innerHTML = html + '</table>';
+  }
+
+  document.getElementById('tombol-tambah').addEventListener('click', function(){
+    var cahaya = parseFloat(inputTambahCahaya.value);
+    var suara = parseFloat(inputTambahSuara.value);
+    var label = inputTambahLabel.value;
+    galatTambah.style.display = 'none';
+    if (isNaN(cahaya) || isNaN(suara)){
+      galatTambah.textContent = 'Isi dulu angka cahaya dan suaranya.'; galatTambah.style.display = 'block'; return;
+    }
+    if (cahaya < 0 || cahaya > 600 || suara < 25 || suara > 85){
+      galatTambah.textContent = 'Cahaya harus 0–600 Lux dan suara 25–85 dB.'; galatTambah.style.display = 'block'; return;
+    }
+    var data = muatDataset();
+    data.push({cahaya:cahaya, suara:suara, label:label});
+    simpanDataset(data);
+    tampilkanDataset();
+    inputTambahCahaya.value = ''; inputTambahSuara.value = '';
+  });
+
+  tabelTambah.addEventListener('click', function(e){
+    var i = e.target.getAttribute('data-hapus-dataset');
+    if (i === null) return;
+    var data = muatDataset();
+    data.splice(parseInt(i, 10), 1);
+    simpanDataset(data);
+    tampilkanDataset();
+  });
+
+  document.getElementById('tombol-bersihkan-dataset').addEventListener('click', function(){
+    if (!confirm('Bersihkan semua data tambahan?')) return;
+    localStorage.removeItem(KUNCI_DATASET);
+    tampilkanDataset();
+  });
+
+  document.getElementById('tombol-unduh-dataset').addEventListener('click', function(){
+    var data = muatDataset();
+    if (!data.length){ alert('Belum ada data tambahan untuk diunduh.'); return; }
+    var csv = 'Light_Lux,Sound_dB,Occupancy\n' + data.map(function(d){ return d.cahaya + ',' + d.suara + ',' + (d.label === 'Terisi' ? 1 : 0); }).join('\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    a.download = 'roomguard_data_tambahan.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  document.getElementById('tambah-unggah').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var baris = String(reader.result).split(/\r?\n/).filter(function(b){ return b.trim(); });
+      var mulai = (baris.length && /light/i.test(baris[0])) ? 1 : 0;
+      var data = muatDataset();
+      var ok = 0, lewati = 0;
+      baris.slice(mulai).forEach(function(b){
+        var kolom = b.split(',');
+        var cahaya = parseFloat(kolom[0]); var suara = parseFloat(kolom[1]);
+        var labelRaw = (kolom[2] || '').trim().toLowerCase();
+        var label = (labelRaw === '1' || labelRaw === 'terisi') ? 'Terisi' : (labelRaw === '0' || labelRaw === 'kosong') ? 'Kosong' : null;
+        if (label === null || isNaN(cahaya) || isNaN(suara) || cahaya < 0 || cahaya > 600 || suara < 25 || suara > 85){ lewati++; return; }
+        data.push({cahaya:cahaya, suara:suara, label:label}); ok++;
+      });
+      simpanDataset(data);
+      tampilkanDataset();
+      document.getElementById('tambah-status').textContent = ok + ' baris berhasil ditambahkan, ' + lewati + ' baris dilewati.';
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
   tampilkanRiwayat();
+  tampilkanDataset();
 })();
 </script>
 </body>
