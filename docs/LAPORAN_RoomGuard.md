@@ -26,9 +26,9 @@ Cara yang umum dipakai selama ini adalah memasang sensor khusus, misalnya sensor
 
 Penelitian sebelumnya menunjukkan jawabannya cenderung ya. Candanedo dan Feldheim (2016), misalnya, memakai data sensor suhu, kelembapan, cahaya, dan CO₂ untuk memperkirakan jumlah orang di ruangan, dan model mereka bekerja cukup baik. Bedanya, proyek ini jauh lebih sederhana: hanya dua fitur, yaitu intensitas cahaya (Lux) dan tingkat kebisingan (dB), dan sumber datanya ponsel biasa, bukan perangkat sensor khusus. Kalau dua fitur saja sudah memberi hasil yang memadai, sistem seperti ini bisa dibangun dengan murah dan mudah ditiru.
 
-Proyek ini diberi nama **RoomGuard**. Sistemnya berupa aplikasi web: pengguna memasukkan nilai Lux dan dB, lalu sistem menjawab apakah ruangan Terisi atau Kosong, lengkap dengan rekomendasi hemat energi. Di balik web itu ada model Decision Tree yang dilatih dari 2.000 baris data — 1.500 baris dari dataset publik UCI Room Occupancy Estimation Dataset dan 500 baris dari rekaman sensor ponsel anggota kelompok memakai aplikasi Phyphox. Perbandingan 75% data publik dan 25% data privat ini sengaja dipilih. Data publik memberi jumlah dan variasi yang cukup untuk melatih model, sedangkan data privat menguji apakah model yang dilatih dari data laboratorium tetap bekerja di ruangan nyata dengan ponsel biasa.
+Proyek ini diberi nama **RoomGuard**. Sistemnya berupa aplikasi web: pengguna memasukkan nilai Lux dan dB, lalu sistem menjawab apakah ruangan Terisi atau Kosong, lengkap dengan rekomendasi hemat energi. Webnya ada dua wujud: versi lengkap berbasis Flask dan SQLite, serta demo publik di GitHub Pages yang berbahasa Indonesia dan bisa dibuka siapa saja. Di demo itu pengunjung juga bisa menambahkan data sendiri lewat fitur Tambah Dataset — penjelasannya ada di Bab III dan Bab IV. Di balik web itu ada model Decision Tree yang dilatih dari 2.000 baris data — 1.500 baris dari dataset publik UCI Room Occupancy Estimation Dataset dan 500 baris dari rekaman sensor ponsel anggota kelompok memakai aplikasi Phyphox. Perbandingan 75% data publik dan 25% data privat ini sengaja dipilih. Data publik memberi jumlah dan variasi yang cukup untuk melatih model, sedangkan data privat menguji apakah model yang dilatih dari data laboratorium tetap bekerja di ruangan nyata dengan ponsel biasa.
 
-Decision Tree dipilih karena alasannya praktis. Hasil pelatihannya berupa aturan yang bisa dibaca manusia, misalnya "kalau suara di bawah sekian desibel, ruangan cenderung kosong". Sifat ini penting untuk laporan dan presentasi, karena penguji bisa melihat langsung logika yang dipakai model, bukan sekadar angka akurasi. Selain itu Decision Tree ringan, cepat dilatih, dan cocok untuk data yang fiturnya sedikit.
+Decision Tree dipilih karena alasannya praktis. Hasil pelatihannya berupa aturan yang bisa dibaca manusia, misalnya "kalau suara di bawah sekian desibel, ruangan cenderung kosong". Sifat ini penting untuk laporan dan presentasi, karena penguji bisa melihat langsung logika yang dipakai model, bukan sekadar angka akurasi. Decision Tree juga ringan, cepat dilatih, dan cocok untuk data yang fiturnya sedikit.
 
 ### 1.2 Rumusan Masalah
 
@@ -36,7 +36,7 @@ Decision Tree dipilih karena alasannya praktis. Hasil pelatihannya berupa aturan
 
 1. Bagaimana membangun model klasifikasi yang membedakan ruangan Terisi dan Kosong hanya dari dua sinyal sensor ponsel, yaitu intensitas cahaya (Lux) dan tingkat kebisingan (dB)?
 2. Seberapa akurat model Decision Tree yang dilatih dari gabungan dataset publik UCI dan data privat Phyphox, dan bagaimana kinerjanya jika diuji terpisah pada masing-masing sumber data?
-3. Bagaimana menyajikan hasil klasifikasi itu dalam aplikasi web yang mudah dipakai, termasuk rekomendasi hemat energi dan riwayat prediksi?
+3. Bagaimana menyajikan hasil klasifikasi itu dalam aplikasi web yang mudah dipakai, termasuk rekomendasi hemat energi, riwayat prediksi, dan cara bagi pengunjung untuk menambahkan data sendiri?
 
 ### 1.3 Batasan Masalah
 
@@ -44,10 +44,10 @@ Decision Tree dipilih karena alasannya praktis. Hasil pelatihannya berupa aturan
 
 1. Klasifikasi hanya dua kelas: **Terisi** (ada orang di ruangan) dan **Kosong** (tidak ada orang). Jumlah orang tidak diperkirakan.
 2. Fitur yang dipakai hanya dua: Light_Lux dan Sound_dB. Data suhu, kelembapan, dan CO₂ yang ada di dataset UCI tidak dipakai, karena ponsel biasa tidak selalu punya sensor itu, dan tujuan proyek ini adalah menguji seberapa jauh dua sensor ambience saja bisa membawa.
-3. Dataset berjumlah 2.000 baris: 1.500 dari dataset publik UCI Room Occupancy Estimation Dataset dan 500 dari rekaman Phyphox anggota kelompok. Tidak ada penambahan data lain.
+3. Dataset latih berjumlah 2.000 baris: 1.500 dari dataset publik UCI Room Occupancy Estimation Dataset dan 500 dari rekaman Phyphox anggota kelompok. Tidak ada penambahan data lain ke dalam dataset latih. Pengunjung web demo memang bisa menambahkan data sendiri lewat fitur Tambah Dataset, tetapi data itu hanya tersimpan di browser pengunjung dan tidak melatih ulang model — penjelasannya ada di Bab III.
 4. Model yang dipakai hanya Decision Tree dari pustaka scikit-learn. Model lain tidak dibandingkan secara mendalam dalam laporan ini.
 5. Data privat diambil di dalam ruangan tertutup dengan ponsel diletakkan di atas meja, interval pencatatan 30 detik, dan pelabelan manual berdasarkan lembar observasi (ada atau tidak ada orang di ruangan), bukan dari nilai sensornya.
-6. Aplikasi web dibangun dengan Flask dan SQLite, dijalankan secara lokal, dan ditujukan untuk demonstrasi dan pengujian, bukan untuk penggunaan produksi.
+6. Aplikasi web punya dua wujud: versi lengkap berbasis Flask dan SQLite yang dijalankan secara lokal, dan demo statis berbahasa Indonesia di GitHub Pages yang modelnya berjalan langsung di browser. Keduanya ditujukan untuk demonstrasi dan pengujian, bukan untuk penggunaan produksi.
 
 ### 1.4 Tujuan
 
@@ -55,7 +55,7 @@ Decision Tree dipilih karena alasannya praktis. Hasil pelatihannya berupa aturan
 
 1. Mengembangkan model Decision Tree yang mengklasifikasikan status keberadaan orang dalam ruangan (Terisi atau Kosong) berdasarkan intensitas cahaya dan tingkat kebisingan dari sensor ponsel.
 2. Menggabungkan dataset publik UCI dan dataset privat Phyphox menjadi satu dataset latih sebanyak 2.000 baris, lalu mengevaluasi kinerja model pada seluruh data uji maupun terpisah per sumber data.
-3. Membangun aplikasi web RoomGuard yang menampilkan hasil prediksi, rekomendasi hemat energi, serta riwayat prediksi, sehingga hasil model bisa dipakai dan diuji secara langsung.
+3. Membangun aplikasi web RoomGuard yang menampilkan hasil prediksi, rekomendasi hemat energi, riwayat prediksi, dan fitur Tambah Dataset, sehingga hasil model bisa dipakai dan diuji secara langsung, dan pengunjung bisa ikut menambahkan data.
 
 ### 1.5 Manfaat
 
@@ -108,9 +108,13 @@ Satu hal yang dijaga dengan ketat: pelabelan data privat tidak boleh didasarkan 
 
 ### 2.4 Frontend, Backend, dan API
 
-**Intinya:** tampilan (frontend) menerima input, backend menjalankan model dan menyimpan hasil, dan API menjadi penghubung keduanya.
+**Intinya:** ada dua wujud web — demo publik berbahasa Indonesia dan versi lengkap Flask berbahasa Inggris — dan keduanya memakai model yang sama.
 
-Frontend dibuat dengan HTML, CSS, dan sedikit JavaScript, seluruhnya berbahasa Inggris supaya tampilannya rapi dan konsisten untuk presentasi. Menunya terdiri dari Dashboard, Predict, History, Dataset, Model, dan About. Dashboard menampilkan ringkasan dan prediksi terakhir. Predict adalah halaman untuk memasukkan nilai Lux dan dB. History menampilkan riwayat prediksi yang tersimpan. Dataset menampilkan ringkasan data. Model menampilkan informasi model dan kinerjanya. About menjelaskan proyek ini.
+**Demo publik.** Demo ini tampil di GitHub Pages dan bisa dibuka siapa saja tanpa instalasi. Seluruh tampilannya berbahasa Indonesia dan dibuat sederhana: latar krem, header hijau tua, dan kartu putih. Modelnya berjalan langsung di browser, mengikuti aturan Decision Tree yang sama dengan versi lengkap. Halaman ini terdiri dari lima bagian: Coba klasifikasi, Riwayat percobaan, Seberapa bagus modelnya, Datanya dari mana, dan Tambah Dataset. Di bagian Coba klasifikasi, pengunjung memasukkan nilai Lux dan dB, lalu hasilnya muncul beserta alasan singkat dan saran hemat energi. Riwayat percobaan tersimpan di browser pengunjung sendiri.
+
+Bagian **Tambah Dataset** adalah tambahan terbaru pada demo ini. Pengunjung bisa menambahkan data sendiri dengan dua cara: mengisi form satu baris (Cahaya, Suara, dan Label Terisi atau Kosong), atau mengunggah file CSV dengan kolom Light_Lux, Sound_dB, dan Occupancy. Data tambahan tampil dalam tabel, bisa dihapus per baris, dan bisa diunduh kembali sebagai file CSV. Penghitung di bagian atas menunjukkan jumlah data tambahan dan totalnya, misalnya dataset awal 2.000 baris ditambah 3 baris data tambahan menjadi 2.003 baris. Semua data tambahan tersimpan di browser pengunjung (localStorage), sehingga tidak hilang saat halaman dimuat ulang. Perlu ditegaskan di sini: data tambahan itu belum melatih ulang model. Model yang dipakai demo tetap model yang dilatih dari 2.000 baris data awal; untuk melatih ulang dengan data baru, langkahnya ada di notebook Colab.
+
+**Versi lengkap.** Versi lengkap dibangun dengan Flask dan SQLite, dan seluruh tampilannya berbahasa Inggris. Menunya terdiri dari Dashboard, Predict, History, Dataset, Model, dan About. Dashboard menampilkan ringkasan dan prediksi terakhir. Predict adalah halaman untuk memasukkan nilai Lux dan dB. History menampilkan riwayat prediksi yang tersimpan di database, lengkap dengan fitur ubah dan hapus. Dataset menampilkan ringkasan data. Model menampilkan informasi model dan kinerjanya. About menjelaskan proyek ini.
 
 Backend memakai Flask, framework web Python yang ringan dan cocok untuk proyek skala kecil. Backend menerima input dari frontend, memanggil model Decision Tree yang sudah dilatih, menyimpan hasil prediksi ke database SQLite, dan mengembalikan jawaban dalam format JSON melalui endpoint API. SQLite dipilih karena tidak butuh instalasi server database terpisah. Seluruh data tersimpan dalam satu file, sehingga aplikasi mudah dijalankan di laptop mana pun untuk keperluan demonstrasi.
 
@@ -120,7 +124,7 @@ Backend memakai Flask, framework web Python yang ringan dan cocok untuk proyek s
 
 Akurasi adalah persentase prediksi yang benar dari seluruh data uji. Presisi menjawab pertanyaan: dari semua yang diprediksi Terisi, berapa persen yang memang Terisi. Recall menjawab pertanyaan sebaliknya: dari semua ruangan yang memang Terisi, berapa persen yang berhasil dikenali. F1-score adalah rata-rata harmonis dari presisi dan recall, berguna ketika kedua ukuran itu sama pentingnya. Keempat ukuran ini dibaca bersama confusion matrix, tabel yang menunjukkan berapa prediksi benar dan salah untuk masing-masing kelas.
 
-Selain itu, model juga dievaluasi terpisah pada data uji publik dan privat. Pemisahan ini penting karena kedua sumber data berasal dari kondisi yang berbeda: data publik direkam dengan sensor khusus di ruangan kantor, sedangkan data privat direkam dengan ponsel di ruangan biasa. Kalau model bekerja jauh lebih buruk pada data privat, itu pertanda model terlalu menyesuaikan diri dengan karakteristik data publik.
+Model juga dievaluasi terpisah pada data uji publik dan privat. Pemisahan ini penting karena kedua sumber data berasal dari kondisi yang berbeda: data publik direkam dengan sensor khusus di ruangan kantor, sedangkan data privat direkam dengan ponsel di ruangan biasa. Kalau model bekerja jauh lebih buruk pada data privat, itu pertanda model terlalu menyesuaikan diri dengan karakteristik data publik.
 
 Evaluasi aplikasi dilakukan secara fungsional: setiap menu dan tombol diuji apakah berjalan sebagaimana mestinya, prediksi tersimpan atau tidak, dan apakah rekomendasi hemat energi yang muncul sesuai dengan hasil prediksinya. Rencana pengujian dan kriteria kelulusannya dijelaskan pada Bab III.
 
@@ -196,6 +200,8 @@ Pengerjaan proyek ini mengikuti alur kerja machine learning yang umum: mulai dar
 │  • Pages: Dashboard, Predict, History,      │
 │    Dataset, Model, About                    │
 │  • Energy-saving recommendation             │
+│  • Public demo (GitHub Pages, Indonesian)   │
+│    with Tambah Dataset feature              │
 └──────────────────┬──────────────────────────┘
                    ▼
 ┌─────────────────────────────────────────────┐
@@ -219,7 +225,7 @@ Karena proyek ini memakai 1.500 baris publik, sampel diambil secara berstrata da
 
 **Data privat.** Data privat direkam sendiri oleh anggota kelompok menggunakan aplikasi Phyphox di ponsel pintar. Ponsel diletakkan di atas meja di dalam ruangan, lalu Phyphox mencatat intensitas cahaya dan tingkat suara setiap 30 detik. Pengambilan dilakukan dalam 5 sesi yang berbeda waktu, dengan total 500 baris: 250 baris saat ruangan Terisi dan 250 baris saat ruangan Kosong. Jumlah kedua kelas sengaja dibuat sama supaya data privat seimbang.
 
-Prosedur setiap sesi adalah sebagai berikut. Pertama, pencatat menyiapkan lembar observasi sederhana berisi waktu dan kondisi ruangan. Kedua, ponsel diletakkan di tempat yang sama pada setiap sesi, layarnya menghadap ke atas agar sensor cahaya tidak tertutup. Ketiga, Phyphox dijalankan dan dibiarkan merekam selama sesi berlangsung. Keempat, pencatat menulis pada lembar observasi kapan ada orang masuk atau keluar ruangan. Kelima, setelah sesi selesai, data diekspor dari Phyphox dalam format CSV dan dicocokkan dengan lembar observasi berdasarkan waktu pencatatan.
+Setiap sesi berjalan seperti ini. Pertama, pencatat menyiapkan lembar observasi sederhana berisi waktu dan kondisi ruangan. Kedua, ponsel diletakkan di tempat yang sama pada setiap sesi, layarnya menghadap ke atas agar sensor cahaya tidak tertutup. Ketiga, Phyphox dijalankan dan dibiarkan merekam selama sesi berlangsung. Keempat, pencatat menulis pada lembar observasi kapan ada orang masuk atau keluar ruangan. Kelima, setelah sesi selesai, data diekspor dari Phyphox dalam format CSV dan dicocokkan dengan lembar observasi berdasarkan waktu pencatatan.
 
 Aturan pelabelan data privat perlu ditegaskan di sini. Label **Terisi** diberikan kalau pada waktu pencatatan itu memang ada minimal satu orang di dalam ruangan menurut lembar observasi, dan **Kosong** kalau tidak ada orang sama sekali. Label ditentukan dari observasi, bukan dari nilai sensor. Artinya, kalau ruangan sedang sepi tetapi lampunya menyala terang, baris itu tetap berlabel Kosong. Kalau ruangan sedang terisi tetapi suasananya hening, baris itu tetap berlabel Terisi. Aturan ini penting supaya model diuji secara jujur: model harus belajar dari pola sensor yang sesungguhnya, bukan dari label yang sudah "dibocorkan" oleh nilai sensor itu sendiri.
 
@@ -257,9 +263,9 @@ Seluruh eksperimen dijalankan di Google Colab dengan Python dan scikit-learn, su
 
 ### 3.6 Perancangan Frontend, Backend, dan API
 
-**Intinya:** enam halaman di depan, Flask dan SQLite di belakang, dihubungkan lewat endpoint API.
+**Intinya:** enam halaman di depan untuk versi lengkap, Flask dan SQLite di belakang, dihubungkan lewat endpoint API — ditambah demo publik satu halaman dengan fitur Tambah Dataset.
 
-**Frontend.** Enam halaman utama: Dashboard (ringkasan, prediksi terakhir, dan statistik singkat), Predict (form input Lux dan dB beserta hasil prediksi dan rekomendasi hemat energi), History (daftar prediksi yang tersimpan, dengan fitur hapus dan hapus semua), Dataset (ringkasan data dan komposisi sumber), Model (informasi model, hyperparameter, dan metrik kinerja), dan About (penjelasan proyek dan anggota kelompok). Tampilan dibuat responsif dan seluruhnya berbahasa Inggris.
+**Versi lengkap (Flask).** Enam halaman utama: Dashboard (ringkasan, prediksi terakhir, dan statistik singkat), Predict (form input Lux dan dB beserta hasil prediksi dan rekomendasi hemat energi), History (daftar prediksi yang tersimpan, dengan fitur ubah dan hapus), Dataset (ringkasan data dan komposisi sumber), Model (informasi model, hyperparameter, dan metrik kinerja), dan About (penjelasan proyek dan anggota kelompok). Tampilan dibuat responsif dan seluruhnya berbahasa Inggris.
 
 **Backend dan API.** Backend memakai Flask dengan endpoint sebagai berikut:
 
@@ -276,7 +282,11 @@ Seluruh eksperimen dijalankan di Google Colab dengan Python dan scikit-learn, su
 
 Hasil prediksi disimpan ke SQLite, termasuk nilai input, kelas hasil, probabilitas, dan waktu prediksi. Rekomendasi hemat energi dibuat berdasarkan hasil prediksi: kalau ruangan diprediksi Kosong, sistem menyarankan mematikan lampu dan pendingin ruangan; kalau Terisi, sistem menyarankan pengaturan normal dan mengingatkan untuk mematikan perangkat saat ruangan ditinggalkan.
 
-**Wireframe (deskripsi).** Halaman Predict menampilkan dua kolom input angka (Light dalam Lux dan Sound dalam dB) di sebelah kiri, tombol Predict di bawahnya, dan kartu hasil di sebelah kanan yang menunjukkan label Terisi atau Kosong, persentase keyakinan, serta kotak rekomendasi. Dashboard menampilkan empat kartu statistik di bagian atas (total prediksi, persentase Terisi, persentase Kosong, dan akurasi model), diikuti tabel lima prediksi terakhir. History menampilkan tabel riwayat dengan kolom waktu, Lux, dB, hasil, dan aksi hapus. Halaman Model menampilkan metrik kinerja dalam kartu-kartu kecil dan confusion matrix dalam bentuk tabel.
+**Demo publik (GitHub Pages).** Demo ini adalah satu halaman berbahasa Indonesia dengan tampilan sederhana: latar krem, header hijau tua, dan kartu putih. Aturan Decision Tree yang dipakai sama dengan versi lengkap, hanya saja dijalankan langsung di browser dengan JavaScript, tanpa server. Urutan bagiannya adalah Coba klasifikasi, Riwayat percobaan, Seberapa bagus modelnya, Datanya dari mana, dan Tambah Dataset.
+
+Fitur Tambah Dataset dirancang supaya pengunjung bisa ikut menambahkan data. Ada form untuk satu baris data (Cahaya, Suara, Label), tombol unggah file CSV dengan kolom Light_Lux, Sound_dB, dan Occupancy (nilai Occupancy boleh 1/0 atau Terisi/Kosong), tabel data tambahan dengan tombol hapus per baris, tombol unduh CSV, dan penghitung total yang berubah otomatis. Validasi inputnya sama dengan form klasifikasi: Cahaya harus 0–600 Lux dan Suara 25–85 dB, kalau tidak, muncul pesan galat berbahasa Indonesia dan barisnya tidak ditambahkan. Baris CSV yang tidak valid dilewati dan dilaporkan jumlahnya. Semua data tambahan disimpan di browser pengunjung (localStorage) dan tidak dikirim ke mana-mana. Demo ini juga menulis dengan jujur di halamannya bahwa data tambahan belum melatih ulang model.
+
+**Wireframe (deskripsi).** Pada versi lengkap, halaman Predict menampilkan dua kolom input angka (Light dalam Lux dan Sound dalam dB) di sebelah kiri, tombol Predict di bawahnya, dan kartu hasil di sebelah kanan yang menunjukkan label Terisi atau Kosong, persentase keyakinan, serta kotak rekomendasi. Dashboard menampilkan empat kartu statistik di bagian atas (total prediksi, persentase Terisi, persentase Kosong, dan akurasi model), diikuti tabel lima prediksi terakhir. History menampilkan tabel riwayat dengan kolom waktu, Lux, dB, hasil, dan aksi hapus. Halaman Model menampilkan metrik kinerja dalam kartu-kartu kecil dan confusion matrix dalam bentuk tabel. Pada demo publik, semua bagian tersusun dalam satu halaman yang bisa di-scroll dari atas ke bawah, dan bagian Tambah Dataset terletak paling bawah, setelah bagian Datanya dari mana.
 
 ### 3.7 Rencana Pengujian dan Kriteria Kelulusan
 
@@ -285,6 +295,8 @@ Hasil prediksi disimpan ke SQLite, termasuk nilai input, kelas hasil, probabilit
 **Pengujian model.** Model dinyatakan lulus kalau memenuhi kriteria berikut: akurasi pada data uji minimal 90%; presisi dan recall masing-masing kelas minimal 85%; dan selisih akurasi antara data uji publik dan privat tidak lebih dari 10 poin persentase. Selisih yang lebih besar menandakan model terlalu bergantung pada satu sumber data.
 
 **Pengujian aplikasi.** Setiap halaman dibuka dan setiap tombol dicoba: form prediksi harus menerima input dan menampilkan hasil; riwayat harus tersimpan dan bisa dihapus; rekomendasi harus sesuai dengan hasil prediksi; dan aplikasi harus tetap berjalan tanpa error saat diberi input di luar rentang wajar (misalnya Lux negatif atau dB di atas 85). Pengujian dilakukan secara manual oleh anggota kelompok dengan daftar periksa (checklist), dan hasilnya dicatat pada Bab IV.
+
+**Pengujian web demo.** Pada demo publik, fitur Tambah Dataset diuji dengan empat langkah: menambahkan satu baris lewat form, mengunggah file CSV berisi baris valid dan satu baris di luar rentang, menghapus satu baris dari tabel, dan mengunduh data tambahan sebagai CSV. Kriteria lulusnya: penghitung total berubah sesuai jumlah data tambahan, baris yang ditambahkan muncul di tabel, baris CSV yang tidak valid dilewati dan dilaporkan, file unduhan berisi data yang sama dengan tabel, dan data tambahan tetap tersimpan setelah halaman dimuat ulang.
 
 ---
 
@@ -373,13 +385,17 @@ Notebook Google Colab proyek ini berisi langkah-langkah yang sama persis dengan 
 
 ### 4.5 Hasil Pengujian Web dan Fungsional
 
-**Intinya:** semua halaman bisa dibuka, prediksi dan riwayat berfungsi, dan rekomendasi yang tampil sesuai dengan hasil prediksinya.
+**Intinya:** semua halaman bisa dibuka, prediksi dan riwayat berfungsi, rekomendasi yang tampil sesuai dengan hasil prediksinya, dan fitur Tambah Dataset pada demo publik berjalan seperti yang direncanakan.
 
-Aplikasi web RoomGuard berhasil dijalankan secara lokal dengan Flask dan SQLite. Seluruh halaman — Dashboard, Predict, History, Dataset, Model, dan About — dapat dibuka tanpa error. Form prediksi menerima nilai Lux dan dB, menampilkan hasil klasifikasi beserta persentase keyakinan, dan menyimpan hasilnya ke riwayat. Rekomendasi hemat energi yang tampil sudah sesuai dengan hasil prediksi: prediksi Kosong menampilkan saran untuk mematikan lampu dan pendingin ruangan, sedangkan prediksi Terisi menampilkan saran pengaturan normal.
+**Versi lengkap (Flask).** Aplikasi web RoomGuard berhasil dijalankan secara lokal dengan Flask dan SQLite. Seluruh halaman — Dashboard, Predict, History, Dataset, Model, dan About — dapat dibuka tanpa error. Form prediksi menerima nilai Lux dan dB, menampilkan hasil klasifikasi beserta persentase keyakinan, dan menyimpan hasilnya ke riwayat. Rekomendasi hemat energi yang tampil sudah sesuai dengan hasil prediksi: prediksi Kosong menampilkan saran untuk mematikan lampu dan pendingin ruangan, sedangkan prediksi Terisi menampilkan saran pengaturan normal.
 
-Fitur CRUD pada riwayat juga berjalan: satu entri bisa dihapus, dan seluruh riwayat bisa dibersihkan. Pengujian input di luar rentang wajar (misalnya Lux negatif atau dB di atas 85) tidak membuat aplikasi crash; sistem menampilkan pesan yang meminta pengguna memeriksa kembali masukannya. Dengan demikian seluruh kriteria pengujian fungsional pada Bab III dinyatakan terpenuhi.
+Fitur CRUD pada riwayat juga berjalan: satu entri bisa diubah dan dihapus, dan seluruh riwayat bisa dibersihkan. Pengujian input di luar rentang wajar (misalnya Lux negatif atau dB di atas 85) tidak membuat aplikasi crash; sistem menampilkan pesan yang meminta pengguna memeriksa kembali masukannya. Semua kriteria pengujian fungsional dari Bab III terpenuhi.
 
 <!-- SCREENSHOT: docs/screenshots/web-prediksi.png — Tampilan halaman prediksi web RoomGuard -->
+
+**Demo publik (GitHub Pages).** Demo satu halaman ini diuji secara terpisah dengan browser otomatis. Form klasifikasi bekerja: input 180 Lux dan 58 dB menghasilkan "Ruangan Terisi" beserta alasan dan sarannya. Fitur Tambah Dataset diuji langkah demi langkah. Menambahkan satu baris lewat form (150 Lux, 52 dB, Terisi) membuat penghitung berubah dari total 2.000 menjadi 2.001 baris, dan baris itu muncul di tabel. Mengunggah file CSV berisi dua baris valid dan satu baris di luar rentang menghasilkan pesan "2 baris berhasil ditambahkan, 1 baris dilewati", dan totalnya menjadi 2.003 baris. Menghapus satu baris dari tabel menurunkan total menjadi 2.002 baris. Setelah halaman dimuat ulang, data tambahan tetap tersimpan dengan total yang sama, 2.002 baris. Tombol Unduh CSV menghasilkan file `roomguard_data_tambahan.csv` yang isinya sama dengan tabel. Terakhir, memasukkan Cahaya 700 Lux — di luar rentang 0–600 — menampilkan pesan galat "Cahaya harus 0–600 Lux dan suara 25–85 dB", dan penghitung tidak berubah. Selama pengujian ini tidak muncul error JavaScript. Dengan begitu, seluruh kriteria pengujian demo pada Bab III terpenuhi.
+
+<!-- SCREENSHOT: docs/screenshots/web-tambah-dataset.png — Bagian Tambah Dataset pada web demo -->
 
 ### 4.6 Pembahasan dan Keterbatasan
 
@@ -397,6 +413,8 @@ Ketiga, **model hanya memakai dua fitur**. Sensor lain seperti suhu, kelembapan,
 
 Keempat, **aplikasi web masih berjalan lokal dan belum terhubung langsung dengan sensor ponsel secara real-time**. Pengguna masih harus memasukkan nilai Lux dan dB secara manual, sehingga sistem belum sepenuhnya otomatis.
 
+Kelima, **data tambahan dari fitur Tambah Dataset belum dipakai untuk melatih ulang model**. Data yang dimasukkan pengunjung hanya tersimpan di browser pengunjung sendiri, sehingga model tidak belajar apa-apa dari data baru itu sampai ada proses pelatihan ulang di Colab.
+
 Keterbatasan-keterbatasan ini bukan kegagalan, melainkan batas yang wajar dari ruang lingkup proyek ini. Semuanya dicatat di sini supaya pembaca dan penguji bisa menilai hasil proyek secara proporsional, dan supaya penelitian lanjutan punya titik awal yang jelas.
 
 ---
@@ -407,12 +425,12 @@ Keterbatasan-keterbatasan ini bukan kegagalan, melainkan batas yang wajar dari r
 
 **Intinya:** modelnya jadi, angkanya bagus, dan web-nya berjalan — dengan catatan jujur pada data privat.
 
-Berdasarkan pengerjaan dan hasil pengujian yang telah dilakukan, dapat disimpulkan:
+Jadi, dari semua yang dikerjakan dan diuji, ada empat hal yang bisa dibilang:
 
 1. Model Decision Tree berhasil dibangun untuk mengklasifikasikan status keberadaan orang dalam ruangan (Terisi atau Kosong) hanya dari dua fitur sensor ponsel, yaitu Light_Lux dan Sound_dB. Pengaturan terbaik yang ditemukan lewat GridSearchCV adalah kriteria gini, `max_depth` 5, dan `min_samples_leaf` 10, dengan akurasi validasi silang 97,29%.
 2. Pada data uji sebanyak 300 baris, model mencapai akurasi 95,33%, presisi 95,95%, recall 94,67%, dan F1-score 95,30%. Dari 300 data, 286 diprediksi dengan benar; kesalahannya terdiri dari 6 false positive dan 8 false negative. Kinerja per sumber data adalah 96,94% pada data publik (n = 229) dan 90,14% pada data privat (n = 71), dengan kelas Kosong pada data privat sebagai yang terlemah (87,10%).
 3. Fitur Sound_dB adalah penentu utama keputusan model dengan importance 0,9006, sedangkan Light_Lux berperan sebagai pelengkap dengan importance 0,0994. Aturan utama pohon: suara di bawah atau sama dengan 41,5 dB cenderung Kosong, di atas 46,35 dB cenderung Terisi, dan di antaranya cahaya membantu memutuskan.
-4. Aplikasi web RoomGuard berhasil dibangun dengan Flask dan SQLite, dilengkapi halaman Dashboard, Predict, History, Dataset, Model, dan About, serta fitur prediksi, rekomendasi hemat energi, dan pengelolaan riwayat. Seluruh fungsi yang direncanakan sudah diuji dan berjalan.
+4. Aplikasi web RoomGuard berhasil dibangun dalam dua wujud: versi lengkap Flask dan SQLite dengan halaman Dashboard, Predict, History, Dataset, Model, dan About, serta fitur prediksi, rekomendasi hemat energi, dan pengelolaan riwayat; dan demo publik berbahasa Indonesia di GitHub Pages dengan fitur Tambah Dataset, yang memungkinkan pengunjung menambahkan data sendiri lewat form atau unggah CSV. Seluruh fungsi yang direncanakan sudah diuji dan berjalan.
 
 ### 5.2 Saran
 
@@ -425,6 +443,7 @@ Untuk pengembangan selanjutnya, ada beberapa hal yang bisa dilakukan:
 3. Menghubungkan aplikasi web langsung dengan sensor ponsel secara real-time, misalnya lewat aplikasi Phyphox atau sensor berbasis web, supaya pengguna tidak perlu memasukkan nilai secara manual.
 4. Membandingkan Decision Tree dengan model lain, seperti Random Forest, untuk melihat apakah akurasi bisa ditingkatkan tanpa mengorbankan kemudahan interpretasi.
 5. Menguji sistem dalam jangka waktu yang lebih panjang, misalnya selama satu minggu penuh, untuk melihat kestabilan kinerjanya pada pola penggunaan ruangan yang berubah-ubah.
+6. Menyambungkan data tambahan dari fitur Tambah Dataset ke proses pelatihan ulang, supaya data yang dimasukkan pengunjung benar-benar bisa memperbaiki model, bukan hanya tersimpan di browser.
 
 ---
 
